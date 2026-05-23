@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       get "posts/one_year_ago", to: "posts#one_year_ago"
       get "posts/streak", to: "posts#streak"
       resources :posts, only: [:index, :create]
+      get "export", to: "exports#show"
       resources :reminders, only: [:create]
       get "reminders/unsubscribe", to: "reminders#unsubscribe"
     end

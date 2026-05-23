@@ -7,6 +7,9 @@ import * as api from "../api";
 
 vi.mock("../api");
 
+global.URL.createObjectURL = vi.fn(() => "blob:mock");
+global.URL.revokeObjectURL = vi.fn();
+
 const TODAY_POST = {
   id: 1,
   content: "今日もいい天気だった",
@@ -35,6 +38,7 @@ beforeEach(() => {
   api.fetchOneYearAgo.mockResolvedValue(null);
   api.fetchStreak.mockResolvedValue({ streak: 0 });
   api.registerReminder.mockResolvedValue({ email: "test@example.com" });
+  api.exportPosts.mockResolvedValue(new Blob(["test"], { type: "text/markdown" }));
 });
 
 describe("App", () => {
@@ -248,6 +252,48 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("まだ記録がありません")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("エクスポート", () => {
+    it("投稿がある場合にExportセクションが表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "Markdown" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "CSV" })).toBeInTheDocument();
+      });
+    });
+
+    it("MarkdownボタンクリックでexportPostsが呼ばれる", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+
+      render(<App />);
+
+      const mdButton = await screen.findByRole("button", { name: "Markdown" });
+      await userEvent.click(mdButton);
+
+      await waitFor(() => {
+        expect(api.exportPosts).toHaveBeenCalledWith("markdown");
+      });
+    });
+
+    it("CSVボタンクリックでexportPostsが呼ばれる", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+
+      render(<App />);
+
+      const csvButton = await screen.findByRole("button", { name: "CSV" });
+      await userEvent.click(csvButton);
+
+      await waitFor(() => {
+        expect(api.exportPosts).toHaveBeenCalledWith("csv");
       });
     });
   });

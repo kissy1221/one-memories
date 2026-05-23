@@ -35,6 +35,12 @@ export async function registerReminder(email) {
   return data;
 }
 
+export async function exportPosts(type) {
+  const res = await fetch(`${BASE}/api/v1/export?type=${type}`);
+  if (!res.ok) throw new Error("エクスポートに失敗しました");
+  return res.blob();
+}
+
 export async function createPost(content, mood = null) {
   const res = await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
