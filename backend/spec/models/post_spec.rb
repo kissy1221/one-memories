@@ -37,6 +37,23 @@ RSpec.describe Post, type: :model do
     end
   end
 
+  describe 'moodバリデーション' do
+    it '1〜5の値は有効' do
+      (1..5).each do |m|
+        expect(build(:post, mood: m)).to be_valid
+      end
+    end
+
+    it '0や6は無効' do
+      expect(build(:post, mood: 0)).not_to be_valid
+      expect(build(:post, mood: 6)).not_to be_valid
+    end
+
+    it 'nilは有効（任意項目）' do
+      expect(build(:post, mood: nil)).to be_valid
+    end
+  end
+
   describe 'スコープ' do
     it '.ordered は posted_on の降順で返す' do
       old  = create(:post, posted_on: Date.current - 2)
