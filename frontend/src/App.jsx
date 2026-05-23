@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, createPost } from "./api";
+import { fetchToday, fetchPosts, fetchOneYearAgo, createPost } from "./api";
 
 const MAX_CHARS = 500;
 
@@ -30,8 +30,7 @@ function PostForm({ onSubmit }) {
     setSubmitting(true);
     setError(null);
     try {
-      const post = await onSubmit(content.trim());
-      return post;
+      return await onSubmit(content.trim());
     } catch (err) {
       setError(err.message);
     } finally {
@@ -67,6 +66,20 @@ function PostForm({ onSubmit }) {
   );
 }
 
+function OneYearAgoCard({ post }) {
+  return (
+    <section className="mt-10">
+      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">1 Year Ago</p>
+      <div className="bg-amber-50 rounded-2xl border border-amber-100 p-8">
+        <p className="text-amber-600 text-xs font-light mb-3 tracking-wide">
+          {formatDate(post.posted_on)} のあなた
+        </p>
+        <p className="text-stone-700 text-base leading-relaxed whitespace-pre-wrap font-light">{post.content}</p>
+      </div>
+    </section>
+  );
+}
+
 function HistoryItem({ post }) {
   return (
     <div className="flex gap-6 py-5 border-b border-stone-100 last:border-0">
@@ -86,13 +99,15 @@ function HistoryItem({ post }) {
 export default function App() {
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
+  const [oneYearAgo, setOneYearAgo] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchToday(), fetchPosts()])
-      .then(([t, all]) => {
+    Promise.all([fetchToday(), fetchPosts(), fetchOneYearAgo()])
+      .then(([t, all, oya]) => {
         setToday(t);
         setPosts(all);
+        setOneYearAgo(oya);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -110,7 +125,6 @@ export default function App() {
   return (
     <div className="min-h-screen bg-stone-50">
       <div className="max-w-xl mx-auto px-4 py-12">
-        {/* Header */}
         <header className="mb-10 text-center">
           <h1 className="text-2xl font-light tracking-[0.2em] text-stone-700">one memory</h1>
           <p className="mt-2 text-stone-400 text-xs tracking-widest font-light">
@@ -118,7 +132,6 @@ export default function App() {
           </p>
         </header>
 
-        {/* Today */}
         {loading ? (
           <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8 animate-pulse">
             <div className="h-3 w-16 bg-stone-100 rounded mb-4" />
@@ -131,7 +144,8 @@ export default function App() {
           <PostForm onSubmit={handleCreate} />
         )}
 
-        {/* History */}
+        {!loading && oneYearAgo && <OneYearAgoCard post={oneYearAgo} />}
+
         {history.length > 0 && (
           <section className="mt-10">
             <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Past</p>

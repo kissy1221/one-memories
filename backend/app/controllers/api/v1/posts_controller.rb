@@ -13,6 +13,11 @@ class Api::V1::PostsController < ApplicationController
     end
   end
 
+  def one_year_ago
+    post = Post.find_by(posted_on: Date.current - 1.year)
+    render json: post ? serialize_post(post) : nil
+  end
+
   def create
     if Post.exists?(posted_on: Date.current)
       render json: { error: "今日はすでに投稿済みです" }, status: :unprocessable_entity
