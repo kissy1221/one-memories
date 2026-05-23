@@ -90,13 +90,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchToday(), fetchPosts(), fetchStreak()])
-      .then(([t, all, s]) => {
-        setToday(t);
-        setPosts(all);
-        setStreak(s.streak);
+    Promise.allSettled([fetchToday(), fetchPosts(), fetchStreak()])
+      .then(([todayResult, postsResult, streakResult]) => {
+        if (todayResult.status === "fulfilled") setToday(todayResult.value);
+        if (postsResult.status === "fulfilled") setPosts(postsResult.value);
+        if (streakResult.status === "fulfilled") setStreak(streakResult.value.streak);
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 
