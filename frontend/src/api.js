@@ -63,12 +63,12 @@ export async function fetchStreak() {
   return res.json();
 }
 
-export async function registerReminder(email) {
-  const res = await fetch(`${BASE}/api/v1/reminders`, {
+export async function registerReminder(notifyHour) {
+  const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ email }),
-  });
+    body: JSON.stringify({ notify_hour: notifyHour }),
+  }));
   const data = await res.json();
   if (!res.ok) throw new Error(data.errors?.[0] || "登録に失敗しました");
   return data;

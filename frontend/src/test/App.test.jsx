@@ -40,7 +40,7 @@ beforeEach(() => {
   localStorage.setItem("email", "test@example.com");
   api.fetchOneYearAgo.mockResolvedValue(null);
   api.fetchStreak.mockResolvedValue({ streak: 0 });
-  api.registerReminder.mockResolvedValue({ email: "test@example.com" });
+  api.registerReminder.mockResolvedValue({ notify_hour: 21, message: "リマインダーを登録しました" });
   api.exportPosts.mockResolvedValue(new Blob(["test"], { type: "text/markdown" }));
 });
 
@@ -282,19 +282,21 @@ describe("App", () => {
   });
 
   describe("リマインダー登録", () => {
-    it("メールアドレスを入力して登録できる", async () => {
+    it("時刻を選択してリマインダーを登録できる", async () => {
       api.fetchToday.mockResolvedValue(null);
       api.fetchPosts.mockResolvedValue([]);
 
       render(<App />);
 
-      const input = await screen.findByPlaceholderText("your@email.com");
-      await userEvent.type(input, "test@example.com");
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "登録" })).toBeInTheDocument();
+      });
+
       await userEvent.click(screen.getByRole("button", { name: "登録" }));
 
       await waitFor(() => {
-        expect(api.registerReminder).toHaveBeenCalledWith("test@example.com");
-        expect(screen.getByText("登録しました。毎晩9時頃にお知らせします。")).toBeInTheDocument();
+        expect(api.registerReminder).toHaveBeenCalledWith(21);
+        expect(screen.getByText(/にリマインダーを登録しました/)).toBeInTheDocument();
       });
     });
   });

@@ -188,19 +188,17 @@ function OneYearAgoCard({ post }) {
 }
 
 function ReminderForm() {
-  const [email, setEmail] = useState("");
+  const [hour, setHour] = useState(21);
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!email.trim()) return;
     setSubmitting(true);
     setStatus(null);
     try {
-      await registerReminder(email.trim());
-      setStatus({ ok: true, message: "登録しました。毎晩9時頃にお知らせします。" });
-      setEmail("");
+      await registerReminder(hour);
+      setStatus({ ok: true, message: `${String(hour).padStart(2, "0")}:00 にリマインダーを登録しました。` });
     } catch (err) {
       setStatus({ ok: false, message: err.message });
     } finally {
@@ -212,20 +210,23 @@ function ReminderForm() {
     <section className="mt-16 pt-8 border-t border-stone-100">
       <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Reminder</p>
       <p className="text-stone-400 text-sm font-light mb-4">
-        毎晩9時頃、未投稿の場合にメールでお知らせします。
+        未投稿の日に、指定した時刻にメールでお知らせします。
       </p>
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="your@email.com"
+        <select
+          value={hour}
+          onChange={(e) => setHour(Number(e.target.value))}
           className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
           disabled={submitting}
-        />
+          aria-label="通知時刻"
+        >
+          {Array.from({ length: 24 }, (_, i) => (
+            <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
+          ))}
+        </select>
         <button
           type="submit"
-          disabled={!email.trim() || submitting}
+          disabled={submitting}
           className="px-5 py-2 bg-stone-200 text-stone-700 text-sm rounded-full font-light hover:bg-stone-300 transition-colors disabled:opacity-40"
         >
           登録
