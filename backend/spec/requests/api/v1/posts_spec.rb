@@ -96,6 +96,26 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     end
   end
 
+  describe 'GET /api/v1/posts/streak' do
+    it '連続投稿日数を返す' do
+      create(:post, posted_on: Date.current)
+      create(:post, posted_on: Date.current - 1)
+
+      get '/api/v1/posts/streak'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['streak']).to eq 2
+    end
+
+    it '投稿がなければ0を返す' do
+      get '/api/v1/posts/streak'
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)['streak']).to eq 0
+    end
+  end
+
   describe 'POST /api/v1/posts' do
     context '正常系' do
       it '投稿を作成して201を返す' do
@@ -107,6 +127,15 @@ RSpec.describe 'Api::V1::Posts', type: :request do
         json = JSON.parse(response.body)
         expect(json['content']).to eq '今日も良い日だった'
         expect(json['posted_on']).to eq Date.current.iso8601
+      end
+
+      it 'moodを含めた投稿を作成できる' do
+        post '/api/v1/posts', params: { post: { content: '良い日だった', mood: 5 } }, as: :json
+
+        expect(response).to have_http_status(:created)
+        json = JSON.parse(response.body)
+        expect(json['mood']).to eq 5
+        expect(json['mood_emoji']).to eq '😊'
       end
     end
 
