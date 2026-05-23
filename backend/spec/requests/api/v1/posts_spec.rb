@@ -47,6 +47,26 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     end
   end
 
+  describe 'GET /api/v1/posts/one_year_ago' do
+    it '1年前の投稿を返す' do
+      post = create(:post, posted_on: Date.current - 1.year, content: '去年の今日')
+
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['id']).to eq post.id
+      expect(json['content']).to eq '去年の今日'
+    end
+
+    it '1年前の投稿がなければnullを返す' do
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to eq 'null'
+    end
+  end
+
   describe 'POST /api/v1/posts' do
     context '正常系' do
       it '投稿を作成して201を返す' do
