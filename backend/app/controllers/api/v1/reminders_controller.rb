@@ -8,13 +8,13 @@ class Api::V1::RemindersController < ApplicationController
     end
   end
 
-  def destroy
-    reminder = Reminder.find_by(id: params[:id])
+  def unsubscribe
+    reminder = Reminder.find_by(unsubscribe_token: params[:token])
     if reminder
       reminder.destroy
       render json: { message: "リマインダーを解除しました" }
     else
-      render json: { error: "見つかりませんでした" }, status: :not_found
+      render json: { error: "無効なトークンです" }, status: :not_found
     end
   end
 end
