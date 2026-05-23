@@ -309,6 +309,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const onUnauthorized = () => handleLogout();
+    window.addEventListener("unauthorized", onUnauthorized);
+    return () => window.removeEventListener("unauthorized", onUnauthorized);
+  }, []);
+
+  useEffect(() => {
     if (!userEmail) { setLoading(false); return; }
     Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo(), fetchStreak()])
       .then(([todayResult, postsResult, oyaResult, streakResult]) => {
