@@ -12,11 +12,11 @@ export async function fetchPosts() {
   return res.json();
 }
 
-export async function createPost(content) {
+export async function createPost(content, mood = null) {
   const res = await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ post: { content } }),
+    body: JSON.stringify({ post: { content, mood } }),
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || "投稿に失敗しました");

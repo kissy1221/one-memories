@@ -10,6 +10,8 @@ vi.mock("../api");
 const TODAY_POST = {
   id: 1,
   content: "今日もいい天気だった",
+  mood: 5,
+  mood_emoji: "😊",
   posted_on: new Date().toISOString().slice(0, 10),
   created_at: new Date().toISOString(),
 };
@@ -76,7 +78,7 @@ describe("App", () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        expect(api.createPost).toHaveBeenCalledWith("今日もいい天気だった");
+        expect(api.createPost).toHaveBeenCalledWith("今日もいい天気だった", null);
       });
 
       await waitFor(() => {
@@ -100,6 +102,19 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("今日はすでに投稿済みです")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("mood表示", () => {
+    it("今日の投稿にmood_emojiが表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST]);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("😊")).toBeInTheDocument();
       });
     });
   });
