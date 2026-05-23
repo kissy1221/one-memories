@@ -47,6 +47,75 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     end
   end
 
+  describe 'GET /api/v1/posts/one_year_ago' do
+    it '1年前ちょうどの投稿を返す' do
+      post = create(:post, posted_on: Date.current - 1.year, content: '去年の今日')
+
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['id']).to eq post.id
+      expect(json['content']).to eq '去年の今日'
+    end
+
+    it '1年前±3日以内の投稿を返す' do
+      post = create(:post, posted_on: Date.current - 1.year + 2.days, content: '2日ずれの去年')
+
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['id']).to eq post.id
+    end
+
+    it '複数ある場合は最近傍の投稿を返す' do
+      far  = create(:post, posted_on: Date.current - 1.year - 3.days, content: '3日前')
+      near = create(:post, posted_on: Date.current - 1.year + 1.day,  content: '1日後')
+
+      get '/api/v1/posts/one_year_ago'
+
+      json = JSON.parse(response.body)
+      expect(json['id']).to eq near.id
+    end
+
+    it '±3日を超える投稿はnullを返す' do
+      create(:post, posted_on: Date.current - 1.year - 4.days, content: '範囲外')
+
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to eq 'null'
+    end
+
+    it '1年前の投稿がなければnullを返す' do
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to eq 'null'
+    end
+  end
+
+  describe 'GET /api/v1/posts/streak' do
+    it '連続投稿日数を返す' do
+      create(:post, posted_on: Date.current)
+      create(:post, posted_on: Date.current - 1)
+
+      get '/api/v1/posts/streak'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['streak']).to eq 2
+    end
+
+    it '投稿がなければ0を返す' do
+      get '/api/v1/posts/streak'
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)['streak']).to eq 0
+    end
+  end
+
   describe 'POST /api/v1/posts' do
     context '正常系' do
       it '投稿を作成して201を返す' do
@@ -58,6 +127,15 @@ RSpec.describe 'Api::V1::Posts', type: :request do
         json = JSON.parse(response.body)
         expect(json['content']).to eq '今日も良い日だった'
         expect(json['posted_on']).to eq Date.current.iso8601
+      end
+
+      it 'moodを含めた投稿を作成できる' do
+        post '/api/v1/posts', params: { post: { content: '良い日だった', mood: 5 } }, as: :json
+
+        expect(response).to have_http_status(:created)
+        json = JSON.parse(response.body)
+        expect(json['mood']).to eq 5
+        expect(json['mood_emoji']).to eq '😊'
       end
     end
 
