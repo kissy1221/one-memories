@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, createPost } from "./api";
+import { fetchToday, fetchPosts, fetchStreak, createPost } from "./api";
 
 const MAX_CHARS = 500;
 
@@ -86,13 +86,15 @@ function HistoryItem({ post }) {
 export default function App() {
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
+  const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchToday(), fetchPosts()])
-      .then(([t, all]) => {
+    Promise.all([fetchToday(), fetchPosts(), fetchStreak()])
+      .then(([t, all, s]) => {
         setToday(t);
         setPosts(all);
+        setStreak(s.streak);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -102,6 +104,7 @@ export default function App() {
     const post = await createPost(content);
     setToday(post);
     setPosts((prev) => [post, ...prev]);
+    setStreak((prev) => prev + 1);
     return post;
   }
 
@@ -116,6 +119,11 @@ export default function App() {
           <p className="mt-2 text-stone-400 text-xs tracking-widest font-light">
             {new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
           </p>
+          {streak > 0 && (
+            <p className="mt-3 text-amber-500 text-sm font-light tracking-wide">
+              🔥 {streak}日連続
+            </p>
+          )}
         </header>
 
         {/* Today */}
