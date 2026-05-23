@@ -23,6 +23,7 @@ const PAST_POST = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  api.registerReminder.mockResolvedValue({ email: "test@example.com" });
 });
 
 describe("App", () => {
@@ -100,6 +101,24 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("今日はすでに投稿済みです")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("リマインダー登録", () => {
+    it("メールアドレスを入力して登録できる", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+
+      render(<App />);
+
+      const input = await screen.findByPlaceholderText("your@email.com");
+      await userEvent.type(input, "test@example.com");
+      await userEvent.click(screen.getByRole("button", { name: "登録" }));
+
+      await waitFor(() => {
+        expect(api.registerReminder).toHaveBeenCalledWith("test@example.com");
+        expect(screen.getByText("登録しました。毎晩9時頃にお知らせします。")).toBeInTheDocument();
       });
     });
   });
