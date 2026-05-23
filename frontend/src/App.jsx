@@ -95,7 +95,7 @@ function ExportSection() {
       a.href = url;
       a.download = type === "csv" ? "one-memory.csv" : "one-memory.md";
       a.click();
-      URL.revokeObjectURL(url);
+      setTimeout(() => URL.revokeObjectURL(url), 10000);
     } finally {
       setExporting(null);
     }
