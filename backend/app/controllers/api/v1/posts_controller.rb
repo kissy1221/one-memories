@@ -13,6 +13,10 @@ class Api::V1::PostsController < ApplicationController
     end
   end
 
+  def streak
+    render json: { streak: Post.current_streak }
+  end
+
   def create
     if Post.exists?(posted_on: Date.current)
       render json: { error: "今日はすでに投稿済みです" }, status: :unprocessable_entity
@@ -30,13 +34,15 @@ class Api::V1::PostsController < ApplicationController
   private
 
   def post_params
-    params.require(:post).permit(:content)
+    params.require(:post).permit(:content, :mood)
   end
 
   def serialize_post(post)
     {
       id: post.id,
       content: post.content,
+      mood: post.mood,
+      mood_emoji: post.mood ? Post::MOODS[post.mood] : nil,
       posted_on: post.posted_on.iso8601,
       created_at: post.created_at.iso8601
     }
