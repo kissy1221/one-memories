@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_23_085144) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_23_093654) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,5 +19,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_23_085144) do
     t.datetime "created_at", null: false
     t.date "posted_on"
     t.datetime "updated_at", null: false
+    t.index ["posted_on"], name: "index_posts_on_posted_on", unique: true
   end
 end
