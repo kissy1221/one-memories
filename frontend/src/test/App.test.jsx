@@ -13,6 +13,8 @@ global.URL.revokeObjectURL = vi.fn();
 const TODAY_POST = {
   id: 1,
   content: "今日もいい天気だった",
+  mood: 5,
+  mood_emoji: "😊",
   posted_on: new Date().toISOString().slice(0, 10),
   created_at: new Date().toISOString(),
 };
@@ -24,8 +26,18 @@ const PAST_POST = {
   created_at: new Date(Date.now() - 86400000).toISOString(),
 };
 
+const ONE_YEAR_AGO_POST = {
+  id: 3,
+  content: "去年の今日の記録",
+  posted_on: new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10),
+  created_at: new Date(Date.now() - 365 * 86400000).toISOString(),
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  api.fetchOneYearAgo.mockResolvedValue(null);
+  api.fetchStreak.mockResolvedValue({ streak: 0 });
+  api.registerReminder.mockResolvedValue({ email: "test@example.com" });
   api.exportPosts.mockResolvedValue(new Blob(["test"], { type: "text/markdown" }));
 });
 
@@ -80,7 +92,7 @@ describe("App", () => {
       await userEvent.click(button);
 
       await waitFor(() => {
-        expect(api.createPost).toHaveBeenCalledWith("今日もいい天気だった");
+        expect(api.createPost).toHaveBeenCalledWith("今日もいい天気だった", null);
       });
 
       await waitFor(() => {
@@ -104,6 +116,118 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("今日はすでに投稿済みです")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("streak表示", () => {
+    it("streak が1以上のとき連続日数が表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST]);
+      api.fetchStreak.mockResolvedValue({ streak: 5 });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("🔥 5日連続")).toBeInTheDocument();
+      });
+    });
+
+    it("streak が0のとき連続日数は表示されない", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchStreak.mockResolvedValue({ streak: 0 });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/日連続/)).not.toBeInTheDocument();
+      });
+    });
+
+    it("fetchStreak が失敗しても今日の投稿と履歴は表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+      api.fetchStreak.mockRejectedValue(new Error("network error"));
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("今日もいい天気だった")).toBeInTheDocument();
+        expect(screen.getByText("昨日の記録")).toBeInTheDocument();
+        expect(screen.queryByText(/日連続/)).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("mood表示", () => {
+    it("今日の投稿にmood_emojiが表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST]);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("😊")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("1年前の今日", () => {
+    it("1年前の投稿がある場合にセクションが表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST]);
+      api.fetchOneYearAgo.mockResolvedValue(ONE_YEAR_AGO_POST);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("去年の今日の記録")).toBeInTheDocument();
+        expect(screen.getByText(/のあなた/)).toBeInTheDocument();
+      });
+    });
+
+    it("1年前の投稿がない場合はセクションが表示されない", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchOneYearAgo.mockResolvedValue(null);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
+      });
+    });
+
+    it("fetchOneYearAgoが失敗しても今日の投稿と履歴は表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+      api.fetchOneYearAgo.mockRejectedValue(new Error("network error"));
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("今日もいい天気だった")).toBeInTheDocument();
+        expect(screen.getByText("昨日の記録")).toBeInTheDocument();
+        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("リマインダー登録", () => {
+    it("メールアドレスを入力して登録できる", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+
+      render(<App />);
+
+      const input = await screen.findByPlaceholderText("your@email.com");
+      await userEvent.type(input, "test@example.com");
+      await userEvent.click(screen.getByRole("button", { name: "登録" }));
+
+      await waitFor(() => {
+        expect(api.registerReminder).toHaveBeenCalledWith("test@example.com");
+        expect(screen.getByText("登録しました。毎晩9時頃にお知らせします。")).toBeInTheDocument();
       });
     });
   });

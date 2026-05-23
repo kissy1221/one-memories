@@ -37,12 +37,72 @@ RSpec.describe Post, type: :model do
     end
   end
 
+  describe 'moodバリデーション' do
+    it '1〜5の値は有効' do
+      (1..5).each do |m|
+        expect(build(:post, mood: m)).to be_valid
+      end
+    end
+
+    it '0や6は無効' do
+      expect(build(:post, mood: 0)).not_to be_valid
+      expect(build(:post, mood: 6)).not_to be_valid
+    end
+
+    it 'nilは有効（任意項目）' do
+      expect(build(:post, mood: nil)).to be_valid
+    end
+  end
+
   describe 'スコープ' do
     it '.ordered は posted_on の降順で返す' do
       old  = create(:post, posted_on: Date.current - 2)
       mid  = create(:post, posted_on: Date.current - 1)
       new_ = create(:post, posted_on: Date.current)
       expect(Post.ordered).to eq [new_, mid, old]
+    end
+  end
+
+  describe '.current_streak' do
+    it '投稿がなければ0を返す' do
+      expect(Post.current_streak).to eq 0
+    end
+
+    it '今日だけ投稿していれば1を返す' do
+      create(:post, posted_on: Date.current)
+      expect(Post.current_streak).to eq 1
+    end
+
+    it '今日と昨日投稿していれば2を返す' do
+      create(:post, posted_on: Date.current)
+      create(:post, posted_on: Date.current - 1)
+      expect(Post.current_streak).to eq 2
+    end
+
+    it '3日連続で投稿していれば3を返す' do
+      create(:post, posted_on: Date.current)
+      create(:post, posted_on: Date.current - 1)
+      create(:post, posted_on: Date.current - 2)
+      expect(Post.current_streak).to eq 3
+    end
+
+    it '途中に空白日があればそこで打ち切られる' do
+      create(:post, posted_on: Date.current)
+      create(:post, posted_on: Date.current - 1)
+      # Date.current - 2 は空白
+      create(:post, posted_on: Date.current - 3)
+      expect(Post.current_streak).to eq 2
+    end
+
+    it '今日未投稿でも昨日から連続していればカウントする' do
+      create(:post, posted_on: Date.current - 1)
+      create(:post, posted_on: Date.current - 2)
+      expect(Post.current_streak).to eq 2
+    end
+
+    it '今日も昨日も未投稿なら0を返す' do
+      create(:post, posted_on: Date.current - 2)
+      expect(Post.current_streak).to eq 0
     end
   end
 end
