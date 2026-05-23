@@ -40,6 +40,22 @@ GET  /api/v1/posts/today   # 今日の投稿（なければ null）
 POST /api/v1/posts         # 新規投稿（body: { post: { content: "..." } }）
 ```
 
+## テスト
+
+```bash
+# バックエンド（RSpec）
+docker compose run --rm -e RAILS_ENV=test backend bundle exec rspec
+
+# フロントエンド（Vitest）
+docker compose run --rm frontend npm test
+```
+
+| テスト | 対象 | ツール |
+|---|---|---|
+| モデルスペック | Post バリデーション・コールバック・スコープ | RSpec + shoulda-matchers |
+| リクエストスペック | APIエンドポイント（GET/POST） | RSpec + FactoryBot |
+| コンポーネントテスト | App の表示・投稿フロー・エラー表示 | Vitest + Testing Library |
+
 ## 開発コマンド
 
 ```bash
