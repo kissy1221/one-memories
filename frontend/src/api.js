@@ -1,25 +1,55 @@
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
+function authHeaders() {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+export async function signup(email, password) {
+  const res = await fetch(`${BASE}/api/v1/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.errors?.[0] || "登録に失敗しました");
+  return data;
+}
+
+export async function login(email, password) {
+  const res = await fetch(`${BASE}/api/v1/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || "ログインに失敗しました");
+  return data;
+}
+
 export async function fetchToday() {
-  const res = await fetch(`${BASE}/api/v1/posts/today`);
+  const res = await fetch(`${BASE}/api/v1/posts/today`, { headers: authHeaders() });
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
 export async function fetchPosts() {
-  const res = await fetch(`${BASE}/api/v1/posts`);
+  const res = await fetch(`${BASE}/api/v1/posts`, { headers: authHeaders() });
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
 export async function fetchOneYearAgo() {
-  const res = await fetch(`${BASE}/api/v1/posts/one_year_ago`);
+  const res = await fetch(`${BASE}/api/v1/posts/one_year_ago`, { headers: authHeaders() });
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
 export async function fetchStreak() {
-  const res = await fetch(`${BASE}/api/v1/posts/streak`);
+  const res = await fetch(`${BASE}/api/v1/posts/streak`, { headers: authHeaders() });
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
@@ -27,7 +57,7 @@ export async function fetchStreak() {
 export async function registerReminder(email) {
   const res = await fetch(`${BASE}/api/v1/reminders`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify({ email }),
   });
   const data = await res.json();
@@ -36,7 +66,7 @@ export async function registerReminder(email) {
 }
 
 export async function exportPosts(type) {
-  const res = await fetch(`${BASE}/api/v1/export?type=${type}`);
+  const res = await fetch(`${BASE}/api/v1/export?type=${type}`, { headers: authHeaders() });
   if (!res.ok) throw new Error("エクスポートに失敗しました");
   return res.blob();
 }
@@ -44,7 +74,7 @@ export async function exportPosts(type) {
 export async function createPost(content, mood = null) {
   const res = await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: authHeaders(),
     body: JSON.stringify({ post: { content, mood } }),
   });
   const data = await res.json();

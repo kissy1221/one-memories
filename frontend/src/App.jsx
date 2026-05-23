@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, registerReminder, exportPosts } from "./api";
+import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, registerReminder, exportPosts, login, signup } from "./api";
 
 const MAX_CHARS = 500;
 const MOODS = [
@@ -13,6 +13,83 @@ const MOODS = [
 function formatDate(isoDate) {
   const d = new Date(isoDate + "T00:00:00");
   return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
+}
+
+function AuthForm({ onAuth }) {
+  const [mode, setMode] = useState("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      const data = mode === "login"
+        ? await login(email, password)
+        : await signup(email, password);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("email", data.email);
+      onAuth(data.email);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+      <div className="w-full max-w-sm">
+        <h1 className="text-2xl font-light tracking-[0.2em] text-stone-700 text-center mb-10">one memory</h1>
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
+          <p className="text-stone-500 text-sm font-light tracking-wider mb-6 text-center">
+            {mode === "login" ? "LOGIN" : "SIGN UP"}
+          </p>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="メールアドレス"
+              required
+              className="w-full text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2.5 font-light outline-none focus:border-stone-400 bg-white"
+              disabled={submitting}
+            />
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="パスワード"
+              required
+              minLength={8}
+              className="w-full text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2.5 font-light outline-none focus:border-stone-400 bg-white"
+              disabled={submitting}
+            />
+            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-2.5 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide disabled:opacity-30 hover:bg-stone-700 transition-colors mt-2"
+            >
+              {submitting ? "..." : mode === "login" ? "ログイン" : "登録する"}
+            </button>
+          </form>
+          <p className="text-center text-stone-400 text-xs mt-6">
+            {mode === "login" ? "アカウントをお持ちでない方は" : "すでにアカウントをお持ちの方は"}
+            <button
+              onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); }}
+              className="underline ml-1 hover:text-stone-600"
+            >
+              {mode === "login" ? "新規登録" : "ログイン"}
+            </button>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function MoodPicker({ value, onChange }) {
@@ -224,6 +301,7 @@ function ExportSection() {
 }
 
 export default function App() {
+  const [userEmail, setUserEmail] = useState(() => localStorage.getItem("email"));
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
   const [oneYearAgo, setOneYearAgo] = useState(null);
@@ -231,6 +309,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!userEmail) { setLoading(false); return; }
     Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo(), fetchStreak()])
       .then(([todayResult, postsResult, oyaResult, streakResult]) => {
         if (todayResult.status === "fulfilled") setToday(todayResult.value);
@@ -239,7 +318,18 @@ export default function App() {
         if (streakResult.status === "fulfilled") setStreak(streakResult.value.streak);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [userEmail]);
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("email");
+    setUserEmail(null);
+    setToday(undefined);
+    setPosts([]);
+    setOneYearAgo(null);
+    setStreak(0);
+    setLoading(true);
+  }
 
   async function handleCreate(content, mood) {
     const post = await createPost(content, mood);
@@ -248,6 +338,8 @@ export default function App() {
     setStreak((prev) => prev + 1);
     return post;
   }
+
+  if (!userEmail) return <AuthForm onAuth={setUserEmail} />;
 
   const history = posts.filter((p) => !today || p.id !== today.id);
 
@@ -264,6 +356,12 @@ export default function App() {
               🔥 {streak}日連続
             </p>
           )}
+          <button
+            onClick={handleLogout}
+            className="mt-3 text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
+          >
+            ログアウト
+          </button>
         </header>
 
         {loading ? (

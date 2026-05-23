@@ -1,37 +1,36 @@
 class Api::V1::PostsController < ApplicationController
+  include Authenticatable
+
   def index
-    posts = Post.ordered
+    posts = current_user.posts.ordered
     render json: posts.map { |p| serialize_post(p) }
   end
 
   def today
-    post = Post.find_by(posted_on: Date.current)
-    if post
-      render json: serialize_post(post)
-    else
-      render json: nil
-    end
+    post = current_user.posts.find_by(posted_on: Date.current)
+    render json: post ? serialize_post(post) : nil
   end
 
   def one_year_ago
     target = Date.current - 1.year
-    post = Post.where(posted_on: (target - 3.days)..(target + 3.days))
-               .order(Arel.sql("ABS(posted_on - DATE '#{target}')"))
-               .first
+    post = current_user.posts
+                       .where(posted_on: (target - 3.days)..(target + 3.days))
+                       .order(Arel.sql("ABS(posted_on - DATE '#{target}')"))
+                       .first
     render json: post ? serialize_post(post) : nil
   end
 
   def streak
-    render json: { streak: Post.current_streak }
+    render json: { streak: current_user.posts.current_streak }
   end
 
   def create
-    if Post.exists?(posted_on: Date.current)
+    if current_user.posts.exists?(posted_on: Date.current)
       render json: { error: "今日はすでに投稿済みです" }, status: :unprocessable_entity
       return
     end
 
-    post = Post.new(post_params)
+    post = current_user.posts.new(post_params)
     if post.save
       render json: serialize_post(post), status: :created
     else

@@ -2,7 +2,7 @@ class Post < ApplicationRecord
   MOODS = { 1 => "😔", 2 => "😕", 3 => "😐", 4 => "🙂", 5 => "😊" }.freeze
 
   validates :content, presence: true, length: { maximum: 500 }
-  validates :posted_on, presence: true, uniqueness: true
+  validates :posted_on, presence: true, uniqueness: { scope: :user_id }
   validates :mood, inclusion: { in: MOODS.keys }, allow_nil: true
   validate :not_future_date
 
