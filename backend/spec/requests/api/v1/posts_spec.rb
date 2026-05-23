@@ -47,6 +47,26 @@ RSpec.describe 'Api::V1::Posts', type: :request do
     end
   end
 
+  describe 'GET /api/v1/posts/streak' do
+    it '連続投稿日数を返す' do
+      create(:post, posted_on: Date.current)
+      create(:post, posted_on: Date.current - 1)
+
+      get '/api/v1/posts/streak'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['streak']).to eq 2
+    end
+
+    it '投稿がなければ0を返す' do
+      get '/api/v1/posts/streak'
+
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)['streak']).to eq 0
+    end
+  end
+
   describe 'POST /api/v1/posts' do
     context '正常系' do
       it '投稿を作成して201を返す' do

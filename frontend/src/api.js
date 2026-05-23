@@ -12,6 +12,12 @@ export async function fetchPosts() {
   return res.json();
 }
 
+export async function fetchStreak() {
+  const res = await fetch(`${BASE}/api/v1/posts/streak`);
+  if (!res.ok) throw new Error("fetch failed");
+  return res.json();
+}
+
 export async function createPost(content) {
   const res = await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
