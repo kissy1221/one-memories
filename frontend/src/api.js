@@ -12,6 +12,17 @@ export async function fetchPosts() {
   return res.json();
 }
 
+export async function registerReminder(email) {
+  const res = await fetch(`${BASE}/api/v1/reminders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.errors?.[0] || "登録に失敗しました");
+  return data;
+}
+
 export async function createPost(content) {
   const res = await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
