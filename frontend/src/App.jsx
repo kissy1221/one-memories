@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, fetchStreak, createPost, registerReminder } from "./api";
+import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, registerReminder } from "./api";
 
 const MAX_CHARS = 500;
 const MOODS = [
@@ -96,6 +96,20 @@ function PostForm({ onSubmit }) {
   );
 }
 
+function OneYearAgoCard({ post }) {
+  return (
+    <section className="mt-10">
+      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">1 Year Ago</p>
+      <div className="bg-amber-50 rounded-2xl border border-amber-100 p-8">
+        <p className="text-amber-600 text-xs font-light mb-3 tracking-wide">
+          {formatDate(post.posted_on)} のあなた
+        </p>
+        <p className="text-stone-700 text-base leading-relaxed whitespace-pre-wrap font-light">{post.content}</p>
+      </div>
+    </section>
+  );
+}
+
 function ReminderForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(null);
@@ -171,14 +185,16 @@ function HistoryItem({ post }) {
 export default function App() {
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
+  const [oneYearAgo, setOneYearAgo] = useState(null);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.allSettled([fetchToday(), fetchPosts(), fetchStreak()])
-      .then(([todayResult, postsResult, streakResult]) => {
+    Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo(), fetchStreak()])
+      .then(([todayResult, postsResult, oyaResult, streakResult]) => {
         if (todayResult.status === "fulfilled") setToday(todayResult.value);
         if (postsResult.status === "fulfilled") setPosts(postsResult.value);
+        if (oyaResult.status === "fulfilled") setOneYearAgo(oyaResult.value);
         if (streakResult.status === "fulfilled") setStreak(streakResult.value.streak);
       })
       .finally(() => setLoading(false));
@@ -220,6 +236,8 @@ export default function App() {
         ) : (
           <PostForm onSubmit={handleCreate} />
         )}
+
+        {!loading && oneYearAgo && <OneYearAgoCard post={oneYearAgo} />}
 
         {history.length > 0 && (
           <section className="mt-10">

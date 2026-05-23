@@ -13,6 +13,14 @@ class Api::V1::PostsController < ApplicationController
     end
   end
 
+  def one_year_ago
+    target = Date.current - 1.year
+    post = Post.where(posted_on: (target - 3.days)..(target + 3.days))
+               .order(Arel.sql("ABS(posted_on - DATE '#{target}')"))
+               .first
+    render json: post ? serialize_post(post) : nil
+  end
+
   def streak
     render json: { streak: Post.current_streak }
   end

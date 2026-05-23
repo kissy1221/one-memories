@@ -23,8 +23,16 @@ const PAST_POST = {
   created_at: new Date(Date.now() - 86400000).toISOString(),
 };
 
+const ONE_YEAR_AGO_POST = {
+  id: 3,
+  content: "去年の今日の記録",
+  posted_on: new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10),
+  created_at: new Date(Date.now() - 365 * 86400000).toISOString(),
+};
+
 beforeEach(() => {
   vi.clearAllMocks();
+  api.fetchOneYearAgo.mockResolvedValue(null);
   api.fetchStreak.mockResolvedValue({ streak: 0 });
   api.registerReminder.mockResolvedValue({ email: "test@example.com" });
 });
@@ -157,6 +165,47 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("😊")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("1年前の今日", () => {
+    it("1年前の投稿がある場合にセクションが表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST]);
+      api.fetchOneYearAgo.mockResolvedValue(ONE_YEAR_AGO_POST);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("去年の今日の記録")).toBeInTheDocument();
+        expect(screen.getByText(/のあなた/)).toBeInTheDocument();
+      });
+    });
+
+    it("1年前の投稿がない場合はセクションが表示されない", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchOneYearAgo.mockResolvedValue(null);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
+      });
+    });
+
+    it("fetchOneYearAgoが失敗しても今日の投稿と履歴は表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+      api.fetchOneYearAgo.mockRejectedValue(new Error("network error"));
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("今日もいい天気だった")).toBeInTheDocument();
+        expect(screen.getByText("昨日の記録")).toBeInTheDocument();
+        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
       });
     });
   });
