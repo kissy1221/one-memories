@@ -63,6 +63,12 @@ export async function fetchStreak() {
   return res.json();
 }
 
+export async function fetchReminder() {
+  const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, { headers: authHeaders() }));
+  if (!res.ok) throw new Error("fetch failed");
+  return res.json();
+}
+
 export async function registerReminder(notifyHour) {
   const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, {
     method: "POST",
@@ -71,6 +77,17 @@ export async function registerReminder(notifyHour) {
   }));
   const data = await res.json();
   if (!res.ok) throw new Error(data.errors?.[0] || "登録に失敗しました");
+  return data;
+}
+
+export async function updateReminder(params) {
+  const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(params),
+  }));
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.errors?.[0] || "更新に失敗しました");
   return data;
 }
 

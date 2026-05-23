@@ -39,6 +39,15 @@ RSpec.describe SendRemindersJob, type: :job do
       end
     end
 
+    context 'リマインダーがOFFの場合' do
+      before { reminder.update!(active: false) }
+
+      it 'メールを送信しない' do
+        expect { SendRemindersJob.new.perform }
+          .not_to change { ActionMailer::Base.deliveries.count }
+      end
+    end
+
     context '複数ユーザーがいる場合' do
       let(:user2) { create(:user) }
       let!(:reminder2) { create(:reminder, email: user2.email, user: user2, notify_hour: current_hour) }

@@ -40,7 +40,9 @@ beforeEach(() => {
   localStorage.setItem("email", "test@example.com");
   api.fetchOneYearAgo.mockResolvedValue(null);
   api.fetchStreak.mockResolvedValue({ streak: 0 });
-  api.registerReminder.mockResolvedValue({ notify_hour: 21, message: "リマインダーを登録しました" });
+  api.fetchReminder.mockResolvedValue(null);
+  api.registerReminder.mockResolvedValue({ notify_hour: 21, active: true, message: "リマインダーを登録しました" });
+  api.updateReminder.mockResolvedValue({ notify_hour: 21, active: false });
   api.exportPosts.mockResolvedValue(new Blob(["test"], { type: "text/markdown" }));
 });
 
@@ -281,10 +283,23 @@ describe("App", () => {
     });
   });
 
-  describe("リマインダー登録", () => {
-    it("時刻を選択してリマインダーを登録できる", async () => {
+  describe("リマインダー", () => {
+    it("未設定時は登録フォームが表示される", async () => {
       api.fetchToday.mockResolvedValue(null);
       api.fetchPosts.mockResolvedValue([]);
+      api.fetchReminder.mockResolvedValue(null);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "登録" })).toBeInTheDocument();
+      });
+    });
+
+    it("登録するとnotify_hourが渡され成功メッセージが表示される", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchReminder.mockResolvedValue(null);
 
       render(<App />);
 
@@ -297,6 +312,34 @@ describe("App", () => {
       await waitFor(() => {
         expect(api.registerReminder).toHaveBeenCalledWith(21);
         expect(screen.getByText(/にリマインダーを登録しました/)).toBeInTheDocument();
+      });
+    });
+
+    it("設定済みの場合は通知時刻とトグルが表示される", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchReminder.mockResolvedValue({ notify_hour: 20, active: true });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("20:00 に通知")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "リマインダーをOFFにする" })).toBeInTheDocument();
+      });
+    });
+
+    it("トグルをクリックするとON/OFFが切り替わる", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchReminder.mockResolvedValue({ notify_hour: 21, active: true });
+
+      render(<App />);
+
+      const toggle = await screen.findByRole("button", { name: "リマインダーをOFFにする" });
+      await userEvent.click(toggle);
+
+      await waitFor(() => {
+        expect(api.updateReminder).toHaveBeenCalledWith({ active: false });
       });
     });
   });

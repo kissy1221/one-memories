@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, registerReminder, exportPosts, login, signup } from "./api";
+import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, fetchReminder, registerReminder, updateReminder, exportPosts, login, signup } from "./api";
 
 const MAX_CHARS = 500;
 const MOODS = [
@@ -188,17 +188,44 @@ function OneYearAgoCard({ post }) {
 }
 
 function ReminderForm() {
+  const [reminder, setReminder] = useState(undefined); // undefined=loading, null=未設定
   const [hour, setHour] = useState(21);
+  const [editing, setEditing] = useState(false);
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
+  useEffect(() => {
+    fetchReminder()
+      .then((data) => {
+        setReminder(data);
+        if (data) setHour(data.notify_hour);
+      })
+      .catch(() => setReminder(null));
+  }, []);
+
+  async function handleRegister(e) {
     e.preventDefault();
     setSubmitting(true);
     setStatus(null);
     try {
-      await registerReminder(hour);
-      setStatus({ ok: true, message: `${String(hour).padStart(2, "0")}:00 にリマインダーを登録しました。` });
+      const data = await registerReminder(hour);
+      setReminder({ notify_hour: data.notify_hour, active: data.active });
+      setEditing(false);
+      setStatus({ ok: true, message: `${String(data.notify_hour).padStart(2, "0")}:00 にリマインダーを登録しました。` });
+    } catch (err) {
+      setStatus({ ok: false, message: err.message });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleToggle() {
+    if (!reminder) return;
+    setSubmitting(true);
+    setStatus(null);
+    try {
+      const data = await updateReminder({ active: !reminder.active });
+      setReminder((prev) => ({ ...prev, active: data.active }));
     } catch (err) {
       setStatus({ ok: false, message: err.message });
     } finally {
@@ -209,29 +236,89 @@ function ReminderForm() {
   return (
     <section className="mt-16 pt-8 border-t border-stone-100">
       <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Reminder</p>
-      <p className="text-stone-400 text-sm font-light mb-4">
-        未投稿の日に、指定した時刻にメールでお知らせします。
-      </p>
-      <form onSubmit={handleSubmit} className="flex gap-2">
-        <select
-          value={hour}
-          onChange={(e) => setHour(Number(e.target.value))}
-          className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
-          disabled={submitting}
-          aria-label="通知時刻"
-        >
-          {Array.from({ length: 24 }, (_, i) => (
-            <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
-          ))}
-        </select>
-        <button
-          type="submit"
-          disabled={submitting}
-          className="px-5 py-2 bg-stone-200 text-stone-700 text-sm rounded-full font-light hover:bg-stone-300 transition-colors disabled:opacity-40"
-        >
-          登録
-        </button>
-      </form>
+
+      {reminder === undefined ? null : reminder === null ? (
+        <>
+          <p className="text-stone-400 text-sm font-light mb-4">
+            未投稿の日に、指定した時刻にメールでお知らせします。
+          </p>
+          <form onSubmit={handleRegister} className="flex gap-2">
+            <select
+              value={hour}
+              onChange={(e) => setHour(Number(e.target.value))}
+              className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
+              disabled={submitting}
+              aria-label="通知時刻"
+            >
+              {Array.from({ length: 24 }, (_, i) => (
+                <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
+              ))}
+            </select>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-5 py-2 bg-stone-200 text-stone-700 text-sm rounded-full font-light hover:bg-stone-300 transition-colors disabled:opacity-40"
+            >
+              登録
+            </button>
+          </form>
+        </>
+      ) : editing ? (
+        <form onSubmit={handleRegister} className="flex gap-2">
+          <select
+            value={hour}
+            onChange={(e) => setHour(Number(e.target.value))}
+            className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
+            disabled={submitting}
+            aria-label="通知時刻"
+          >
+            {Array.from({ length: 24 }, (_, i) => (
+              <option key={i} value={i}>{String(i).padStart(2, "0")}:00</option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={submitting}
+            className="px-5 py-2 bg-stone-800 text-white text-sm rounded-full font-light hover:bg-stone-700 transition-colors disabled:opacity-40"
+          >
+            保存
+          </button>
+          <button
+            type="button"
+            onClick={() => { setEditing(false); setHour(reminder.notify_hour); }}
+            className="px-4 py-2 text-stone-400 text-sm font-light hover:text-stone-600"
+          >
+            キャンセル
+          </button>
+        </form>
+      ) : (
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-stone-600 text-sm font-light">
+              {String(reminder.notify_hour).padStart(2, "0")}:00 に通知
+            </p>
+            <button
+              onClick={() => setEditing(true)}
+              className="text-stone-400 text-xs font-light hover:text-stone-600 mt-1"
+            >
+              時刻を変更
+            </button>
+          </div>
+          <button
+            onClick={handleToggle}
+            disabled={submitting}
+            aria-label={reminder.active ? "リマインダーをOFFにする" : "リマインダーをONにする"}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-40
+              ${reminder.active ? "bg-stone-700" : "bg-stone-200"}`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+                ${reminder.active ? "translate-x-6" : "translate-x-1"}`}
+            />
+          </button>
+        </div>
+      )}
+
       {status && (
         <p className={`mt-2 text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
           {status.message}
