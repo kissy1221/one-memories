@@ -6,6 +6,8 @@ Rails.application.routes.draw do
       get "posts/today", to: "posts#today"
       get "posts/streak", to: "posts#streak"
       resources :posts, only: [:index, :create]
+      resources :reminders, only: [:create]
+      get "reminders/unsubscribe", to: "reminders#unsubscribe"
     end
   end
 end
