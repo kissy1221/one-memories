@@ -4,7 +4,7 @@ RSpec.describe Post, type: :model do
   describe 'バリデーション' do
     it { is_expected.to validate_presence_of(:content) }
     it { is_expected.to validate_length_of(:content).is_at_most(500) }
-    it { is_expected.to validate_uniqueness_of(:posted_on) }
+    it { is_expected.to validate_uniqueness_of(:posted_on).scoped_to(:user_id) }
 
     it '正常な投稿は有効' do
       post = build(:post)
@@ -23,8 +23,9 @@ RSpec.describe Post, type: :model do
     end
 
     it '同じ日付の投稿は2件目が無効' do
-      create(:post, posted_on: Date.current)
-      duplicate = build(:post, posted_on: Date.current)
+      user = create(:user)
+      create(:post, posted_on: Date.current, user: user)
+      duplicate = build(:post, posted_on: Date.current, user: user)
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:posted_on]).to be_present
     end
