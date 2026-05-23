@@ -1,0 +1,7 @@
+yesterday:
+  content: 昨日の記録。いい天気だった。
+  posted_on: <%= Date.yesterday %>
+
+two_days_ago:
+  content: 一昨日の記録。少し疲れた。
+  posted_on: <%= Date.today - 2 %>
