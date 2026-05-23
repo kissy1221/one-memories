@@ -13,6 +13,10 @@ class Api::V1::PostsController < ApplicationController
     end
   end
 
+  def streak
+    render json: { streak: Post.current_streak }
+  end
+
   def create
     if Post.exists?(posted_on: Date.current)
       render json: { error: "今日はすでに投稿済みです" }, status: :unprocessable_entity
