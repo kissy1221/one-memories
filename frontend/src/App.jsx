@@ -1,17 +1,45 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, fetchOneYearAgo, createPost } from "./api";
+import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, registerReminder } from "./api";
 
 const MAX_CHARS = 500;
+const MOODS = [
+  { value: 1, emoji: "😔" },
+  { value: 2, emoji: "😕" },
+  { value: 3, emoji: "😐" },
+  { value: 4, emoji: "🙂" },
+  { value: 5, emoji: "😊" },
+];
 
 function formatDate(isoDate) {
   const d = new Date(isoDate + "T00:00:00");
   return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
 }
 
+function MoodPicker({ value, onChange }) {
+  return (
+    <div className="flex gap-2 mb-4">
+      {MOODS.map((m) => (
+        <button
+          key={m.value}
+          type="button"
+          onClick={() => onChange(value === m.value ? null : m.value)}
+          className={`text-2xl rounded-full w-10 h-10 flex items-center justify-center transition-all
+            ${value === m.value ? "bg-stone-100 scale-110" : "opacity-40 hover:opacity-70"}`}
+        >
+          {m.emoji}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function TodayCard({ post }) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
       <p className="text-stone-500 text-sm mb-4 font-light tracking-wider">TODAY</p>
+      {post.mood_emoji && (
+        <span className="text-2xl mb-3 block">{post.mood_emoji}</span>
+      )}
       <p className="text-stone-800 text-lg leading-relaxed whitespace-pre-wrap font-light">{post.content}</p>
       <p className="mt-6 text-stone-400 text-xs">{formatDate(post.posted_on)}</p>
     </div>
@@ -20,6 +48,7 @@ function TodayCard({ post }) {
 
 function PostForm({ onSubmit }) {
   const [content, setContent] = useState("");
+  const [mood, setMood] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const remaining = MAX_CHARS - content.length;
@@ -30,7 +59,7 @@ function PostForm({ onSubmit }) {
     setSubmitting(true);
     setError(null);
     try {
-      return await onSubmit(content.trim());
+      return await onSubmit(content.trim(), mood);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -41,6 +70,7 @@ function PostForm({ onSubmit }) {
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
       <p className="text-stone-500 text-sm mb-4 font-light tracking-wider">TODAY</p>
+      <MoodPicker value={mood} onChange={setMood} />
       <textarea
         className="w-full min-h-[140px] text-stone-800 text-base leading-relaxed font-light placeholder-stone-300 border-none outline-none bg-transparent"
         placeholder="今日のひとこと..."
@@ -80,6 +110,59 @@ function OneYearAgoCard({ post }) {
   );
 }
 
+function ReminderForm() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubmitting(true);
+    setStatus(null);
+    try {
+      await registerReminder(email.trim());
+      setStatus({ ok: true, message: "登録しました。毎晩9時頃にお知らせします。" });
+      setEmail("");
+    } catch (err) {
+      setStatus({ ok: false, message: err.message });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="mt-16 pt-8 border-t border-stone-100">
+      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Reminder</p>
+      <p className="text-stone-400 text-sm font-light mb-4">
+        毎晩9時頃、未投稿の場合にメールでお知らせします。
+      </p>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
+          disabled={submitting}
+        />
+        <button
+          type="submit"
+          disabled={!email.trim() || submitting}
+          className="px-5 py-2 bg-stone-200 text-stone-700 text-sm rounded-full font-light hover:bg-stone-300 transition-colors disabled:opacity-40"
+        >
+          登録
+        </button>
+      </form>
+      {status && (
+        <p className={`mt-2 text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+          {status.message}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function HistoryItem({ post }) {
   return (
     <div className="flex gap-6 py-5 border-b border-stone-100 last:border-0">
@@ -91,6 +174,9 @@ function HistoryItem({ post }) {
           {new Date(post.posted_on + "T00:00:00").toLocaleDateString("ja-JP", { weekday: "short" })}
         </span>
       </div>
+      {post.mood_emoji && (
+        <span className="text-lg mt-0.5">{post.mood_emoji}</span>
+      )}
       <p className="text-stone-600 text-sm leading-relaxed font-light flex-1 whitespace-pre-wrap">{post.content}</p>
     </div>
   );
@@ -100,22 +186,25 @@ export default function App() {
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
   const [oneYearAgo, setOneYearAgo] = useState(null);
+  const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo()])
-      .then(([todayResult, postsResult, oyaResult]) => {
+    Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo(), fetchStreak()])
+      .then(([todayResult, postsResult, oyaResult, streakResult]) => {
         if (todayResult.status === "fulfilled") setToday(todayResult.value);
         if (postsResult.status === "fulfilled") setPosts(postsResult.value);
         if (oyaResult.status === "fulfilled") setOneYearAgo(oyaResult.value);
+        if (streakResult.status === "fulfilled") setStreak(streakResult.value.streak);
       })
       .finally(() => setLoading(false));
   }, []);
 
-  async function handleCreate(content) {
-    const post = await createPost(content);
+  async function handleCreate(content, mood) {
+    const post = await createPost(content, mood);
     setToday(post);
     setPosts((prev) => [post, ...prev]);
+    setStreak((prev) => prev + 1);
     return post;
   }
 
@@ -129,6 +218,11 @@ export default function App() {
           <p className="mt-2 text-stone-400 text-xs tracking-widest font-light">
             {new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
           </p>
+          {streak > 0 && (
+            <p className="mt-3 text-amber-500 text-sm font-light tracking-wide">
+              🔥 {streak}日連続
+            </p>
+          )}
         </header>
 
         {loading ? (
@@ -159,6 +253,8 @@ export default function App() {
         {!loading && posts.length === 0 && !today && (
           <p className="text-center text-stone-300 text-sm mt-16 font-light">まだ記録がありません</p>
         )}
+
+        <ReminderForm />
       </div>
     </div>
   );
