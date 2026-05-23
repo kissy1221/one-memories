@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, fetchStreak, createPost } from "./api";
+import { fetchToday, fetchPosts, fetchStreak, createPost, registerReminder } from "./api";
 
 const MAX_CHARS = 500;
 const MOODS = [
@@ -96,6 +96,59 @@ function PostForm({ onSubmit }) {
   );
 }
 
+function ReminderForm() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubmitting(true);
+    setStatus(null);
+    try {
+      await registerReminder(email.trim());
+      setStatus({ ok: true, message: "登録しました。毎晩9時頃にお知らせします。" });
+      setEmail("");
+    } catch (err) {
+      setStatus({ ok: false, message: err.message });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <section className="mt-16 pt-8 border-t border-stone-100">
+      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Reminder</p>
+      <p className="text-stone-400 text-sm font-light mb-4">
+        毎晩9時頃、未投稿の場合にメールでお知らせします。
+      </p>
+      <form onSubmit={handleSubmit} className="flex gap-2">
+        <input
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
+          disabled={submitting}
+        />
+        <button
+          type="submit"
+          disabled={!email.trim() || submitting}
+          className="px-5 py-2 bg-stone-200 text-stone-700 text-sm rounded-full font-light hover:bg-stone-300 transition-colors disabled:opacity-40"
+        >
+          登録
+        </button>
+      </form>
+      {status && (
+        <p className={`mt-2 text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+          {status.message}
+        </p>
+      )}
+    </section>
+  );
+}
+
 function HistoryItem({ post }) {
   return (
     <div className="flex gap-6 py-5 border-b border-stone-100 last:border-0">
@@ -182,6 +235,8 @@ export default function App() {
         {!loading && posts.length === 0 && !today && (
           <p className="text-center text-stone-300 text-sm mt-16 font-light">まだ記録がありません</p>
         )}
+
+        <ReminderForm />
       </div>
     </div>
   );
