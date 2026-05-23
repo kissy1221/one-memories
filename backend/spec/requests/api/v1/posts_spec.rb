@@ -79,6 +79,15 @@ RSpec.describe 'Api::V1::Posts', type: :request do
         expect(json['content']).to eq '今日も良い日だった'
         expect(json['posted_on']).to eq Date.current.iso8601
       end
+
+      it 'moodを含めた投稿を作成できる' do
+        post '/api/v1/posts', params: { post: { content: '良い日だった', mood: 5 } }, as: :json
+
+        expect(response).to have_http_status(:created)
+        json = JSON.parse(response.body)
+        expect(json['mood']).to eq 5
+        expect(json['mood_emoji']).to eq '😊'
+      end
     end
 
     context '今日すでに投稿済みの場合' do
