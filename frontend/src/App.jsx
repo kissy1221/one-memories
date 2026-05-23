@@ -103,13 +103,12 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchToday(), fetchPosts(), fetchOneYearAgo()])
-      .then(([t, all, oya]) => {
-        setToday(t);
-        setPosts(all);
-        setOneYearAgo(oya);
+    Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo()])
+      .then(([todayResult, postsResult, oyaResult]) => {
+        if (todayResult.status === "fulfilled") setToday(todayResult.value);
+        if (postsResult.status === "fulfilled") setPosts(postsResult.value);
+        if (oyaResult.status === "fulfilled") setOneYearAgo(oyaResult.value);
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
 

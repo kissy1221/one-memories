@@ -137,6 +137,20 @@ describe("App", () => {
         expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
       });
     });
+
+    it("fetchOneYearAgoが失敗しても今日の投稿と履歴は表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+      api.fetchOneYearAgo.mockRejectedValue(new Error("network error"));
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("今日もいい天気だった")).toBeInTheDocument();
+        expect(screen.getByText("昨日の記録")).toBeInTheDocument();
+        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe("過去の投稿一覧", () => {
