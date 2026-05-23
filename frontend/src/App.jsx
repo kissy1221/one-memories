@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, createPost } from "./api";
+import { fetchToday, fetchPosts, createPost, exportPosts } from "./api";
 
 const MAX_CHARS = 500;
 
@@ -83,6 +83,47 @@ function HistoryItem({ post }) {
   );
 }
 
+function ExportSection() {
+  const [exporting, setExporting] = useState(null);
+
+  async function handleExport(type) {
+    setExporting(type);
+    try {
+      const blob = await exportPosts(type);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = type === "csv" ? "one-memory.csv" : "one-memory.md";
+      a.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  return (
+    <section className="mt-8 pt-8 border-t border-stone-100">
+      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Export</p>
+      <div className="flex gap-2">
+        <button
+          onClick={() => handleExport("markdown")}
+          disabled={exporting !== null}
+          className="px-4 py-2 text-xs text-stone-500 border border-stone-200 rounded-full font-light hover:bg-stone-50 transition-colors disabled:opacity-40"
+        >
+          {exporting === "markdown" ? "..." : "Markdown"}
+        </button>
+        <button
+          onClick={() => handleExport("csv")}
+          disabled={exporting !== null}
+          className="px-4 py-2 text-xs text-stone-500 border border-stone-200 rounded-full font-light hover:bg-stone-50 transition-colors disabled:opacity-40"
+        >
+          {exporting === "csv" ? "..." : "CSV"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
@@ -146,6 +187,8 @@ export default function App() {
         {!loading && posts.length === 0 && !today && (
           <p className="text-center text-stone-300 text-sm mt-16 font-light">まだ記録がありません</p>
         )}
+
+        {!loading && posts.length > 0 && <ExportSection />}
       </div>
     </div>
   );

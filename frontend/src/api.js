@@ -12,6 +12,12 @@ export async function fetchPosts() {
   return res.json();
 }
 
+export async function exportPosts(type) {
+  const res = await fetch(`${BASE}/api/v1/export?type=${type}`);
+  if (!res.ok) throw new Error("エクスポートに失敗しました");
+  return res.blob();
+}
+
 export async function createPost(content) {
   const res = await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
