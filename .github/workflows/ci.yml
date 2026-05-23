@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: ["master", "main", "feature/**"]
+  pull_request:
+
+jobs:
+  backend:
+    name: RSpec
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: one_memory
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: one_memory_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    env:
+      RAILS_ENV: test
+      DB_HOST: localhost
+      DB_USER: one_memory
+      DB_PASSWORD: password
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: backend
+
+      - name: DB setup
+        run: bundle exec rails db:create db:migrate
+
+      - name: RSpec
+        run: bundle exec rspec
+
+  frontend:
+    name: Vitest
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Vitest
+        run: npm test
