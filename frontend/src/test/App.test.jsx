@@ -25,6 +25,7 @@ const PAST_POST = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  api.fetchStreak.mockResolvedValue({ streak: 0 });
 });
 
 describe("App", () => {
@@ -102,6 +103,46 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("今日はすでに投稿済みです")).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe("streak表示", () => {
+    it("streak が1以上のとき連続日数が表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST]);
+      api.fetchStreak.mockResolvedValue({ streak: 5 });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("🔥 5日連続")).toBeInTheDocument();
+      });
+    });
+
+    it("streak が0のとき連続日数は表示されない", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+      api.fetchStreak.mockResolvedValue({ streak: 0 });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.queryByText(/日連続/)).not.toBeInTheDocument();
+      });
+    });
+
+    it("fetchStreak が失敗しても今日の投稿と履歴は表示される", async () => {
+      api.fetchToday.mockResolvedValue(TODAY_POST);
+      api.fetchPosts.mockResolvedValue([TODAY_POST, PAST_POST]);
+      api.fetchStreak.mockRejectedValue(new Error("network error"));
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("今日もいい天気だった")).toBeInTheDocument();
+        expect(screen.getByText("昨日の記録")).toBeInTheDocument();
+        expect(screen.queryByText(/日連続/)).not.toBeInTheDocument();
       });
     });
   });
