@@ -48,7 +48,7 @@ RSpec.describe 'Api::V1::Posts', type: :request do
   end
 
   describe 'GET /api/v1/posts/one_year_ago' do
-    it '1年前の投稿を返す' do
+    it '1年前ちょうどの投稿を返す' do
       post = create(:post, posted_on: Date.current - 1.year, content: '去年の今日')
 
       get '/api/v1/posts/one_year_ago'
@@ -57,6 +57,35 @@ RSpec.describe 'Api::V1::Posts', type: :request do
       json = JSON.parse(response.body)
       expect(json['id']).to eq post.id
       expect(json['content']).to eq '去年の今日'
+    end
+
+    it '1年前±3日以内の投稿を返す' do
+      post = create(:post, posted_on: Date.current - 1.year + 2.days, content: '2日ずれの去年')
+
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['id']).to eq post.id
+    end
+
+    it '複数ある場合は最近傍の投稿を返す' do
+      far  = create(:post, posted_on: Date.current - 1.year - 3.days, content: '3日前')
+      near = create(:post, posted_on: Date.current - 1.year + 1.day,  content: '1日後')
+
+      get '/api/v1/posts/one_year_ago'
+
+      json = JSON.parse(response.body)
+      expect(json['id']).to eq near.id
+    end
+
+    it '±3日を超える投稿はnullを返す' do
+      create(:post, posted_on: Date.current - 1.year - 4.days, content: '範囲外')
+
+      get '/api/v1/posts/one_year_ago'
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to eq 'null'
     end
 
     it '1年前の投稿がなければnullを返す' do
