@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
@@ -35,13 +35,80 @@ const ONE_YEAR_AGO_POST = {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // ログイン済み状態にする
+  localStorage.setItem("token", "mock-token");
+  localStorage.setItem("email", "test@example.com");
   api.fetchOneYearAgo.mockResolvedValue(null);
   api.fetchStreak.mockResolvedValue({ streak: 0 });
   api.registerReminder.mockResolvedValue({ email: "test@example.com" });
   api.exportPosts.mockResolvedValue(new Blob(["test"], { type: "text/markdown" }));
 });
 
+afterEach(() => {
+  localStorage.clear();
+});
+
 describe("App", () => {
+  describe("認証", () => {
+    it("未ログイン時はログインフォームが表示される", () => {
+      localStorage.clear();
+      render(<App />);
+      expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("パスワード")).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "ログイン" })).toBeInTheDocument();
+    });
+
+    it("新規登録に切り替えられる", async () => {
+      localStorage.clear();
+      render(<App />);
+      await userEvent.click(screen.getByRole("button", { name: "新規登録" }));
+      expect(screen.getByRole("button", { name: "登録する" })).toBeInTheDocument();
+    });
+
+    it("ログイン成功でメイン画面に遷移する", async () => {
+      localStorage.clear();
+      api.login.mockResolvedValue({ token: "tok", email: "test@example.com" });
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+
+      render(<App />);
+      await userEvent.type(screen.getByPlaceholderText("メールアドレス"), "test@example.com");
+      await userEvent.type(screen.getByPlaceholderText("パスワード"), "password123");
+      await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
+
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("今日のひとこと...")).toBeInTheDocument();
+      });
+    });
+
+    it("ログイン失敗でエラーメッセージが表示される", async () => {
+      localStorage.clear();
+      api.login.mockRejectedValue(new Error("メールアドレスまたはパスワードが正しくありません"));
+
+      render(<App />);
+      await userEvent.type(screen.getByPlaceholderText("メールアドレス"), "wrong@example.com");
+      await userEvent.type(screen.getByPlaceholderText("パスワード"), "wrongpass");
+      await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("メールアドレスまたはパスワードが正しくありません")).toBeInTheDocument();
+      });
+    });
+
+    it("ログアウトするとログインフォームに戻る", async () => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+
+      render(<App />);
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText("今日のひとこと...")).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "ログアウト" }));
+      expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
+    });
+  });
+
   describe("今日の投稿がある場合", () => {
     it("投稿内容が表示される", async () => {
       api.fetchToday.mockResolvedValue(TODAY_POST);

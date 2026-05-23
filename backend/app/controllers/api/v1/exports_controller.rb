@@ -1,8 +1,10 @@
 require "csv"
 
 class Api::V1::ExportsController < ApplicationController
+  include Authenticatable
+
   def show
-    posts = Post.ordered
+    posts = current_user.posts.ordered
 
     case params[:type]
     when "csv"
