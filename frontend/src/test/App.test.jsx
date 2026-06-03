@@ -51,10 +51,60 @@ afterEach(() => {
 });
 
 describe("App", () => {
-  describe("認証", () => {
-    it("未ログイン時はログインフォームが表示される", () => {
+  describe("ヒーローページ", () => {
+    it("未ログイン時はヒーローページが表示される", () => {
       localStorage.clear();
       render(<App />);
+      expect(screen.getAllByRole("button", { name: "無料ではじめる" })[0]).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "ログイン" })).toBeInTheDocument();
+    });
+
+    it("ヒーローページに4つの機能紹介カードが表示される", () => {
+      localStorage.clear();
+      render(<App />);
+      expect(screen.getByText("1日1回だけ書く")).toBeInTheDocument();
+      expect(screen.getByText("気分をemojiで記録")).toBeInTheDocument();
+      expect(screen.getByText("🔥 連続記録で習慣化")).toBeInTheDocument();
+      expect(screen.getByText("データは自分のもの")).toBeInTheDocument();
+    });
+
+    it("1年前の記憶セクションが表示される", () => {
+      localStorage.clear();
+      render(<App />);
+      expect(screen.getByText(/1年前の今日、あなたは/)).toBeInTheDocument();
+    });
+
+    it("はじめるボタンを押すとログインフォームが表示される", async () => {
+      localStorage.clear();
+      render(<App />);
+      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("パスワード")).toBeInTheDocument();
+    });
+
+    it("ナビのログインボタンを押してもログインフォームが表示される", async () => {
+      localStorage.clear();
+      render(<App />);
+      await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
+      expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
+    });
+
+    it("認証フォームからトップに戻るとヒーローページが表示される", async () => {
+      localStorage.clear();
+      render(<App />);
+      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "← トップに戻る" }));
+      expect(screen.getAllByRole("button", { name: "無料ではじめる" })[0]).toBeInTheDocument();
+    });
+  });
+
+  describe("認証", () => {
+    it("未ログイン時はヒーローページからログインフォームに進める", async () => {
+      localStorage.clear();
+      render(<App />);
+      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
       expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("パスワード")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "ログイン" })).toBeInTheDocument();
@@ -63,6 +113,7 @@ describe("App", () => {
     it("新規登録に切り替えられる", async () => {
       localStorage.clear();
       render(<App />);
+      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
       await userEvent.click(screen.getByRole("button", { name: "新規登録" }));
       expect(screen.getByRole("button", { name: "登録する" })).toBeInTheDocument();
     });
@@ -74,6 +125,7 @@ describe("App", () => {
       api.fetchPosts.mockResolvedValue([]);
 
       render(<App />);
+      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
       await userEvent.type(screen.getByPlaceholderText("メールアドレス"), "test@example.com");
       await userEvent.type(screen.getByPlaceholderText("パスワード"), "password123");
       await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
@@ -88,6 +140,7 @@ describe("App", () => {
       api.login.mockRejectedValue(new Error("メールアドレスまたはパスワードが正しくありません"));
 
       render(<App />);
+      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
       await userEvent.type(screen.getByPlaceholderText("メールアドレス"), "wrong@example.com");
       await userEvent.type(screen.getByPlaceholderText("パスワード"), "wrongpass");
       await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
@@ -97,7 +150,7 @@ describe("App", () => {
       });
     });
 
-    it("ログアウトするとログインフォームに戻る", async () => {
+    it("ログアウトするとヒーローページに戻る", async () => {
       api.fetchToday.mockResolvedValue(null);
       api.fetchPosts.mockResolvedValue([]);
 
@@ -107,7 +160,7 @@ describe("App", () => {
       });
 
       await userEvent.click(screen.getByRole("button", { name: "ログアウト" }));
-      expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "無料ではじめる" })[0]).toBeInTheDocument();
     });
   });
 

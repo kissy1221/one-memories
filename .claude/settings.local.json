@@ -23,7 +23,18 @@
       "Bash(git fetch *)",
       "Bash(git merge *)",
       "Bash(FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch *)",
-      "Bash(python3 -m json.tool)"
+      "Bash(python3 -m json.tool)",
+      "Bash(npm test *)",
+      "Bash(npx vitest *)",
+      "Bash(npm install *)",
+      "Bash(bundle exec *)",
+      "Bash(rbenv versions *)",
+      "Bash(rvm list *)",
+      "Bash(rbenv local *)",
+      "Bash(rbenv exec *)",
+      "Bash(pg_isready)",
+      "Bash(brew services *)",
+      "Bash(docker exec one-memory-backend-1 *)"
     ]
   }
 }

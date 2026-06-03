@@ -1,6 +1,164 @@
 import React, { useState, useEffect } from "react";
 import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, fetchReminder, registerReminder, updateReminder, exportPosts, login, signup } from "./api";
 
+const FEATURES = [
+  {
+    title: "1日1回だけ書く",
+    desc: "投稿は1日に1回まで。「完璧に書かなきゃ」のプレッシャーがなく、ひとことでも十分です。",
+  },
+  {
+    title: "気分をemojiで記録",
+    desc: "5段階の気分を絵文字で残せます。文章には書けない、その日の感情の記録になります。",
+  },
+  {
+    title: "🔥 連続記録で習慣化",
+    desc: "何日連続で書けたか自動でカウント。メールリマインダーで書き忘れも防げます。",
+  },
+  {
+    title: "データは自分のもの",
+    desc: "全投稿をMarkdownまたはCSVでいつでもエクスポートできます。ロックインなし。",
+  },
+];
+
+function AppMockup() {
+  return (
+    <div className="w-full max-w-xs mx-auto select-none" aria-hidden="true">
+      <div className="bg-white rounded-2xl border border-stone-100 shadow-md p-6 mb-3">
+        <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Today</p>
+        <div className="flex gap-1.5 mb-4">
+          {["😔", "😕", "😐", "🙂", "😊"].map((e, i) => (
+            <span
+              key={i}
+              className={`text-xl transition-all ${i === 3 ? "opacity-100" : "opacity-25"}`}
+            >
+              {e}
+            </span>
+          ))}
+        </div>
+        <p className="text-stone-700 text-sm font-light leading-relaxed">
+          桜が満開だった。お花見できてよかった。来年も見たいな。🌸
+        </p>
+        <p className="mt-4 text-stone-300 text-xs">2025年3月28日（金）</p>
+      </div>
+
+      <div className="flex items-center justify-center gap-2 my-2">
+        <div className="h-px flex-1 bg-stone-200" />
+        <p className="text-stone-300 text-xs font-light whitespace-nowrap">1年後、通知が届く</p>
+        <div className="h-px flex-1 bg-stone-200" />
+      </div>
+
+      <div className="bg-amber-50 rounded-2xl border border-amber-100 p-6">
+        <p className="text-amber-500 text-xs font-light mb-3 tracking-wide">
+          1 Year Ago · 2025年3月28日のあなた
+        </p>
+        <p className="text-stone-700 text-sm font-light leading-relaxed">
+          桜が満開だった。お花見できてよかった。来年も見たいな。🌸
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function HeroPage({ onStart }) {
+  return (
+    <div className="min-h-screen bg-stone-50 flex flex-col">
+      {/* Nav */}
+      <nav className="flex items-center justify-between px-6 py-5 max-w-5xl mx-auto w-full">
+        <span className="text-xl font-light tracking-[0.2em] text-stone-700">one memory</span>
+        <button
+          onClick={onStart}
+          className="text-sm text-stone-500 font-light hover:text-stone-700 transition-colors"
+        >
+          ログイン
+        </button>
+      </nav>
+
+      {/* Hero */}
+      <section className="max-w-5xl mx-auto px-6 pt-14 pb-20 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div>
+          <p className="text-stone-400 text-xs tracking-[0.35em] font-light mb-6 uppercase">
+            毎日ひとことの日記アプリ
+          </p>
+          <h2 className="text-4xl sm:text-5xl font-light text-stone-800 leading-snug mb-6">
+            今日のひとことが、<br />
+            <span className="text-amber-600">1年後の宝物</span>になる。
+          </h2>
+          <p className="text-stone-400 text-base font-light leading-relaxed mb-8 max-w-md">
+            1日1回だけ投稿できる、シンプルな日記アプリです。
+            書いた記憶は1年後に自動で蘇り、過去の自分と向き合えます。
+            三日坊主でも、ひとことでも、それでいい。
+          </p>
+          <div className="flex gap-3 items-center">
+            <button
+              onClick={onStart}
+              className="px-8 py-3 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide hover:bg-stone-700 transition-colors"
+            >
+              無料ではじめる
+            </button>
+            <button
+              onClick={onStart}
+              className="text-sm text-stone-400 font-light hover:text-stone-600 transition-colors"
+            >
+              ログイン →
+            </button>
+          </div>
+        </div>
+
+        <AppMockup />
+      </section>
+
+      {/* 1年前の記憶 highlight */}
+      <section className="bg-amber-50 border-y border-amber-100 py-16">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-center sm:text-left">
+          <div className="sm:col-span-2">
+            <p className="text-amber-500 text-xs tracking-widest font-light mb-3 uppercase">
+              one memory のコア機能
+            </p>
+            <h3 className="text-2xl font-light text-stone-800 mb-3 leading-snug">
+              1年前の今日、あなたは<br className="hidden sm:block" />何を感じていましたか？
+            </h3>
+            <p className="text-stone-400 text-sm font-light leading-relaxed max-w-md">
+              投稿した日からちょうど1年後、その記録が画面に蘇ります。
+              去年の自分の言葉に、笑ったり、懐かしんだり、成長を感じたり。
+              日々の小さな記録が、長い時間をかけて意味を持ちはじめます。
+            </p>
+          </div>
+          <div className="text-5xl sm:text-6xl text-center">📅</div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="max-w-5xl mx-auto px-6 py-20 w-full">
+        <p className="text-stone-400 text-xs tracking-widest font-light mb-10 uppercase text-center">Features</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="bg-white rounded-2xl border border-stone-100 p-6 shadow-sm">
+              <p className="text-stone-700 text-sm font-medium mb-2">{f.title}</p>
+              <p className="text-stone-400 text-sm font-light leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Bottom CTA */}
+      <section className="border-t border-stone-100 py-16 text-center px-6">
+        <h3 className="text-2xl font-light text-stone-700 mb-3">今日から、はじめよう。</h3>
+        <p className="text-stone-400 text-sm font-light mb-8">アカウント登録は1分、無料で使えます。</p>
+        <button
+          onClick={onStart}
+          className="px-10 py-3.5 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide hover:bg-stone-700 transition-colors"
+        >
+          無料ではじめる
+        </button>
+      </section>
+
+      <footer className="border-t border-stone-100 py-6 text-center">
+        <p className="text-stone-300 text-xs font-light tracking-widest">one memory</p>
+      </footer>
+    </div>
+  );
+}
+
 const MAX_CHARS = 500;
 const MOODS = [
   { value: 1, emoji: "😔" },
@@ -15,7 +173,7 @@ function formatDate(isoDate) {
   return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
 }
 
-function AuthForm({ onAuth }) {
+function AuthForm({ onAuth, onBack }) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -86,6 +244,16 @@ function AuthForm({ onAuth }) {
               {mode === "login" ? "新規登録" : "ログイン"}
             </button>
           </p>
+          {onBack && (
+            <p className="text-center mt-4">
+              <button
+                onClick={onBack}
+                className="text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
+              >
+                ← トップに戻る
+              </button>
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -390,6 +558,7 @@ function ExportSection() {
 
 export default function App() {
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem("email"));
+  const [showAuth, setShowAuth] = useState(false);
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
   const [oneYearAgo, setOneYearAgo] = useState(null);
@@ -418,6 +587,7 @@ export default function App() {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
     setUserEmail(null);
+    setShowAuth(false);
     setToday(undefined);
     setPosts([]);
     setOneYearAgo(null);
@@ -433,7 +603,8 @@ export default function App() {
     return post;
   }
 
-  if (!userEmail) return <AuthForm onAuth={setUserEmail} />;
+  if (!userEmail && !showAuth) return <HeroPage onStart={() => setShowAuth(true)} />;
+  if (!userEmail) return <AuthForm onAuth={setUserEmail} onBack={() => setShowAuth(false)} />;
 
   const history = posts.filter((p) => !today || p.id !== today.id);
 
