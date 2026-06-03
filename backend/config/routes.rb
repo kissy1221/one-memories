@@ -10,7 +10,8 @@ Rails.application.routes.draw do
       get "posts/streak", to: "posts#streak"
       resources :posts, only: [:index, :create]
       get "export", to: "exports#show"
-      resources :reminders, only: [:create]
+      resources :reminders, only: [:index, :create]
+      patch "reminders", to: "reminders#update"
       get "reminders/unsubscribe", to: "reminders#unsubscribe"
     end
   end
