@@ -419,6 +419,59 @@ describe("App", () => {
         expect(screen.getByText("まだ記録がありません")).toBeInTheDocument();
       });
     });
+
+    it("過去投稿が年月ごとにグループ化されて表示される", async () => {
+      const postA = {
+        id: 10,
+        content: "先月の投稿",
+        posted_on: "2026-05-15",
+        created_at: "2026-05-15T00:00:00Z",
+      };
+      const postB = {
+        id: 11,
+        content: "先々月の投稿",
+        posted_on: "2026-04-10",
+        created_at: "2026-04-10T00:00:00Z",
+      };
+
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([postA, postB]);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByText("先月の投稿")).toBeInTheDocument();
+        expect(screen.getByText("先々月の投稿")).toBeInTheDocument();
+        expect(screen.getByText("2026年5月")).toBeInTheDocument();
+        expect(screen.getByText("2026年4月")).toBeInTheDocument();
+      });
+    });
+
+    it("同じ月の投稿は同じグループにまとまる", async () => {
+      const postA = {
+        id: 20,
+        content: "今月最初の投稿",
+        posted_on: "2026-05-01",
+        created_at: "2026-05-01T00:00:00Z",
+      };
+      const postB = {
+        id: 21,
+        content: "今月2番目の投稿",
+        posted_on: "2026-05-10",
+        created_at: "2026-05-10T00:00:00Z",
+      };
+
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([postA, postB]);
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getAllByText("2026年5月")).toHaveLength(1);
+        expect(screen.getByText("今月最初の投稿")).toBeInTheDocument();
+        expect(screen.getByText("今月2番目の投稿")).toBeInTheDocument();
+      });
+    });
   });
 
   describe("エクスポート", () => {
