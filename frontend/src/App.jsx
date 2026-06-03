@@ -498,6 +498,21 @@ function ReminderForm() {
   );
 }
 
+function groupByYearMonth(posts) {
+  const groups = [];
+  const seen = {};
+  for (const post of posts) {
+    const d = new Date(post.posted_on + "T00:00:00");
+    const key = d.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
+    if (!seen[key]) {
+      seen[key] = [];
+      groups.push([key, seen[key]]);
+    }
+    seen[key].push(post);
+  }
+  return groups;
+}
+
 function HistoryItem({ post }) {
   return (
     <div className="flex gap-6 py-5 border-b border-stone-100 last:border-0">
@@ -647,12 +662,17 @@ export default function App() {
 
         {history.length > 0 && (
           <section className="mt-10">
-            <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Past</p>
-            <div className="bg-white rounded-2xl shadow-sm border border-stone-100 px-8">
-              {history.map((post) => (
-                <HistoryItem key={post.id} post={post} />
-              ))}
-            </div>
+            <p className="text-stone-400 text-xs tracking-widest font-light mb-6 uppercase">Past</p>
+            {groupByYearMonth(history).map(([month, monthPosts]) => (
+              <div key={month} className="mb-6">
+                <p className="text-stone-300 text-xs font-light mb-2 tracking-wide">{month}</p>
+                <div className="bg-white rounded-2xl shadow-sm border border-stone-100 px-8">
+                  {monthPosts.map((post) => (
+                    <HistoryItem key={post.id} post={post} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </section>
         )}
 
