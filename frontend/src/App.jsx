@@ -23,7 +23,7 @@ const FEATURES = [
 function AppMockup() {
   return (
     <div className="w-full max-w-xs mx-auto select-none" aria-hidden="true">
-      <div className="bg-white rounded-2xl border border-stone-100 shadow-md p-6 mb-3">
+      <div className="bg-white rounded-2xl border border-stone-200 shadow-md p-6 mb-3">
         <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Today</p>
         <div className="flex gap-1.5 mb-4">
           {["😔", "😕", "😐", "🙂", "😊"].map((e, i) => (
@@ -43,11 +43,11 @@ function AppMockup() {
 
       <div className="flex items-center justify-center gap-2 my-2">
         <div className="h-px flex-1 bg-stone-200" />
-        <p className="text-stone-300 text-xs font-light whitespace-nowrap">1年後、通知が届く</p>
+        <p className="text-stone-400 text-xs font-light whitespace-nowrap">1年後、通知が届く</p>
         <div className="h-px flex-1 bg-stone-200" />
       </div>
 
-      <div className="bg-amber-50 rounded-2xl border border-amber-100 p-6">
+      <div className="bg-amber-50 rounded-2xl border border-amber-200 shadow-sm p-6">
         <p className="text-amber-500 text-xs font-light mb-3 tracking-wide">
           1 Year Ago · 2025年3月28日のあなた
         </p>
@@ -63,7 +63,7 @@ function HeroPage({ onStart }) {
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
       {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-5 max-w-5xl mx-auto w-full">
+      <nav className="flex items-center justify-between px-6 py-5 max-w-5xl mx-auto w-full border-b border-stone-200">
         <span className="text-xl font-light tracking-[0.2em] text-stone-700">one memory</span>
         <button
           onClick={onStart}
@@ -128,20 +128,22 @@ function HeroPage({ onStart }) {
       </section>
 
       {/* Features */}
-      <section className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <p className="text-stone-400 text-xs tracking-widest font-light mb-10 uppercase text-center">Features</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="bg-white rounded-2xl border border-stone-100 p-6 shadow-sm">
-              <p className="text-stone-700 text-sm font-medium mb-2">{f.title}</p>
-              <p className="text-stone-400 text-sm font-light leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
+      <section className="bg-white border-y border-stone-200 py-20">
+        <div className="max-w-5xl mx-auto px-6">
+          <p className="text-stone-400 text-xs tracking-widest font-light mb-10 uppercase text-center">Features</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {FEATURES.map((f) => (
+              <div key={f.title} className="rounded-2xl border border-stone-200 p-6">
+                <p className="text-stone-700 text-sm font-medium mb-2">{f.title}</p>
+                <p className="text-stone-500 text-sm font-light leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* Bottom CTA */}
-      <section className="border-t border-stone-100 py-16 text-center px-6">
+      <section className="border-b border-stone-200 py-16 text-center px-6">
         <h3 className="text-2xl font-light text-stone-700 mb-3">今日から、はじめよう。</h3>
         <p className="text-stone-400 text-sm font-light mb-8">アカウント登録は1分、無料で使えます。</p>
         <button
@@ -152,7 +154,7 @@ function HeroPage({ onStart }) {
         </button>
       </section>
 
-      <footer className="border-t border-stone-100 py-6 text-center">
+      <footer className="py-6 text-center">
         <p className="text-stone-300 text-xs font-light tracking-widest">one memory</p>
       </footer>
     </div>
