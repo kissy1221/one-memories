@@ -378,20 +378,23 @@ function ReminderForm() {
     }
   }
 
+  const selectClass =
+    "flex-1 bg-transparent text-sm text-ink border-0 border-b border-rule focus:border-ink outline-none py-1.5 rounded-none";
+
   return (
-    <section className="mt-16 pt-8 border-t border-stone-100">
-      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Reminder</p>
+    <section>
+      <p className="text-[11px] tracking-[0.25em] text-pencil-dark mb-3">リマインダー</p>
 
       {reminder === undefined ? null : reminder === null ? (
         <>
-          <p className="text-stone-400 text-sm font-light mb-4">
+          <p className="text-pencil-dark text-sm mb-3">
             未投稿の日に、指定した時刻にメールでお知らせします。
           </p>
-          <form onSubmit={handleRegister} className="flex gap-2">
+          <form onSubmit={handleRegister} className="flex gap-3 items-end">
             <select
               value={hour}
               onChange={(e) => setHour(Number(e.target.value))}
-              className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
+              className={selectClass}
               disabled={submitting}
               aria-label="通知時刻"
             >
@@ -402,18 +405,18 @@ function ReminderForm() {
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2 bg-stone-200 text-stone-700 text-sm rounded-full font-light hover:bg-stone-300 transition-colors disabled:opacity-40"
+              className="px-5 py-2 bg-ink text-paper text-sm rounded hover:bg-cover-dark transition-colors disabled:opacity-40"
             >
               登録
             </button>
           </form>
         </>
       ) : editing ? (
-        <form onSubmit={handleRegister} className="flex gap-2">
+        <form onSubmit={handleRegister} className="flex gap-3 items-end">
           <select
             value={hour}
             onChange={(e) => setHour(Number(e.target.value))}
-            className="flex-1 text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2 font-light outline-none focus:border-stone-400 bg-white"
+            className={selectClass}
             disabled={submitting}
             aria-label="通知時刻"
           >
@@ -424,14 +427,14 @@ function ReminderForm() {
           <button
             type="submit"
             disabled={submitting}
-            className="px-5 py-2 bg-stone-800 text-white text-sm rounded-full font-light hover:bg-stone-700 transition-colors disabled:opacity-40"
+            className="px-5 py-2 bg-ink text-paper text-sm rounded hover:bg-cover-dark transition-colors disabled:opacity-40"
           >
             保存
           </button>
           <button
             type="button"
             onClick={() => { setEditing(false); setHour(reminder.notify_hour); }}
-            className="px-4 py-2 text-stone-400 text-sm font-light hover:text-stone-600"
+            className="px-3 py-2 text-pencil-dark text-sm hover:text-ink"
           >
             キャンセル
           </button>
@@ -439,12 +442,12 @@ function ReminderForm() {
       ) : (
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-stone-600 text-sm font-light">
+            <p className="text-ink text-sm">
               {String(reminder.notify_hour).padStart(2, "0")}:00 に通知
             </p>
             <button
               onClick={() => setEditing(true)}
-              className="text-stone-400 text-xs font-light hover:text-stone-600 mt-1"
+              className="text-pencil-dark text-xs hover:text-ink mt-1"
             >
               時刻を変更
             </button>
@@ -454,10 +457,10 @@ function ReminderForm() {
             disabled={submitting}
             aria-label={reminder.active ? "リマインダーをOFFにする" : "リマインダーをONにする"}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors disabled:opacity-40
-              ${reminder.active ? "bg-stone-700" : "bg-stone-200"}`}
+              ${reminder.active ? "bg-ink" : "bg-rule"}`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform
+              className={`inline-block h-4 w-4 transform rounded-full bg-paper shadow transition-transform
                 ${reminder.active ? "translate-x-6" : "translate-x-1"}`}
             />
           </button>
@@ -465,7 +468,7 @@ function ReminderForm() {
       )}
 
       {status && (
-        <p className={`mt-2 text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+        <p className={`mt-2 text-xs ${status.ok ? "text-pencil-dark" : "text-ink-red"}`}>
           {status.message}
         </p>
       )}
@@ -522,20 +525,20 @@ function ExportSection() {
   }
 
   return (
-    <section className="mt-8 pt-8 border-t border-stone-100">
-      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Export</p>
+    <section className="mb-6">
+      <p className="text-[11px] tracking-[0.25em] text-pencil-dark mb-3">エクスポート</p>
       <div className="flex gap-2">
         <button
           onClick={() => handleExport("markdown")}
           disabled={exporting !== null}
-          className="px-4 py-2 text-xs text-stone-500 border border-stone-200 rounded-full font-light hover:bg-stone-50 transition-colors disabled:opacity-40"
+          className="px-4 py-1.5 text-xs text-pencil-dark border border-scrap-edge rounded hover:bg-scrap transition-colors disabled:opacity-40"
         >
           {exporting === "markdown" ? "..." : "Markdown"}
         </button>
         <button
           onClick={() => handleExport("csv")}
           disabled={exporting !== null}
-          className="px-4 py-2 text-xs text-stone-500 border border-stone-200 rounded-full font-light hover:bg-stone-50 transition-colors disabled:opacity-40"
+          className="px-4 py-1.5 text-xs text-pencil-dark border border-scrap-edge rounded hover:bg-scrap transition-colors disabled:opacity-40"
         >
           {exporting === "csv" ? "..." : "CSV"}
         </button>
@@ -605,40 +608,39 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
     }
   }
 
-  const inputClass = "w-full text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2.5 font-light outline-none focus:border-stone-400 bg-white";
+  const inputClass =
+    "w-full bg-transparent text-sm text-ink placeholder:text-pencil border-0 border-b border-rule focus:border-ink outline-none px-1 py-2 rounded-none";
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="max-w-xl mx-auto px-4 py-12">
-        <header className="mb-10">
-          <button
-            onClick={onClose}
-            className="text-stone-400 text-xs font-light hover:text-stone-600 transition-colors mb-6 block"
-          >
-            ← 戻る
-          </button>
-          <h1 className="text-xl font-light tracking-[0.2em] text-stone-700">アカウント設定</h1>
-          <p className="mt-1 text-stone-400 text-xs font-light">{userEmail}</p>
-        </header>
+    <NotebookPage>
+      <div className="pl-[72px] sm:pl-[94px] pr-5 pt-6 pb-10">
+        <button
+          onClick={onClose}
+          className="text-pencil-dark text-xs hover:text-ink transition-colors"
+        >
+          ← 戻る
+        </button>
+        <h1 className="font-display font-bold text-lg text-ink tracking-[0.15em] mt-6">アカウント設定</h1>
+        <p className="mt-1 text-pencil-dark text-xs">{userEmail}</p>
 
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 divide-y divide-stone-100">
+        <div className="mt-8 border-t border-b border-scrap-edge divide-y divide-scrap-edge">
           {/* メールアドレス変更 */}
-          <div className="p-6">
+          <div className="py-5">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-stone-700 text-sm font-light">メールアドレス</p>
+              <p className="text-ink text-sm">メールアドレス</p>
               {section !== "email" && (
                 <button
                   onClick={() => handleSectionChange("email")}
-                  className="text-xs text-stone-400 hover:text-stone-600 font-light"
+                  className="text-xs text-pencil-dark hover:text-ink"
                 >
                   変更
                 </button>
               )}
             </div>
-            <p className="text-stone-400 text-xs font-light">{userEmail}</p>
+            <p className="text-pencil-dark text-xs">{userEmail}</p>
 
             {section === "email" && (
-              <form onSubmit={handleEmailSubmit} className="mt-4 flex flex-col gap-3">
+              <form onSubmit={handleEmailSubmit} className="mt-4 flex flex-col gap-4">
                 <input
                   type="password"
                   value={currentPassword}
@@ -658,7 +660,7 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
                   disabled={submitting}
                 />
                 {status && (
-                  <p className={`text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+                  <p className={`text-xs ${status.ok ? "text-pencil-dark" : "text-ink-red"}`}>
                     {status.message}
                   </p>
                 )}
@@ -666,14 +668,14 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2 bg-stone-800 text-white text-sm rounded-full font-light hover:bg-stone-700 transition-colors disabled:opacity-30"
+                    className="px-5 py-2 bg-ink text-paper text-sm rounded hover:bg-cover-dark transition-colors disabled:opacity-30"
                   >
                     {submitting ? "保存中..." : "保存"}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSectionChange(null)}
-                    className="px-4 py-2 text-stone-400 text-sm font-light hover:text-stone-600"
+                    className="px-4 py-2 text-pencil-dark text-sm hover:text-ink"
                   >
                     キャンセル
                   </button>
@@ -683,22 +685,22 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
           </div>
 
           {/* パスワード変更 */}
-          <div className="p-6">
+          <div className="py-5">
             <div className="flex items-center justify-between mb-1">
-              <p className="text-stone-700 text-sm font-light">パスワード</p>
+              <p className="text-ink text-sm">パスワード</p>
               {section !== "password" && (
                 <button
                   onClick={() => handleSectionChange("password")}
-                  className="text-xs text-stone-400 hover:text-stone-600 font-light"
+                  className="text-xs text-pencil-dark hover:text-ink"
                 >
                   変更
                 </button>
               )}
             </div>
-            <p className="text-stone-400 text-xs font-light">••••••••</p>
+            <p className="text-pencil-dark text-xs">••••••••</p>
 
             {section === "password" && (
-              <form onSubmit={handlePasswordSubmit} className="mt-4 flex flex-col gap-3">
+              <form onSubmit={handlePasswordSubmit} className="mt-4 flex flex-col gap-4">
                 <input
                   type="password"
                   value={currentPassword}
@@ -729,7 +731,7 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
                   disabled={submitting}
                 />
                 {status && (
-                  <p className={`text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+                  <p className={`text-xs ${status.ok ? "text-pencil-dark" : "text-ink-red"}`}>
                     {status.message}
                   </p>
                 )}
@@ -737,14 +739,14 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="px-5 py-2 bg-stone-800 text-white text-sm rounded-full font-light hover:bg-stone-700 transition-colors disabled:opacity-30"
+                    className="px-5 py-2 bg-ink text-paper text-sm rounded hover:bg-cover-dark transition-colors disabled:opacity-30"
                   >
                     {submitting ? "保存中..." : "保存"}
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSectionChange(null)}
-                    className="px-4 py-2 text-stone-400 text-sm font-light hover:text-stone-600"
+                    className="px-4 py-2 text-pencil-dark text-sm hover:text-ink"
                   >
                     キャンセル
                   </button>
@@ -755,10 +757,10 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
         </div>
 
         {section === null && status?.ok && (
-          <p className="mt-4 text-center text-stone-500 text-xs font-light">{status.message}</p>
+          <p className="mt-4 text-center text-pencil-dark text-xs">{status.message}</p>
         )}
       </div>
-    </div>
+    </NotebookPage>
   );
 }
 
@@ -873,10 +875,10 @@ export default function App() {
         </p>
       )}
 
-      <div className="px-5 pb-8">
+      <footer className="border-t border-scrap-edge mt-4 pl-[72px] sm:pl-[94px] pr-5 py-6">
         {!loading && posts.length > 0 && <ExportSection />}
         <ReminderForm />
-      </div>
+      </footer>
     </NotebookPage>
   );
 }
