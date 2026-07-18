@@ -829,12 +829,12 @@ export default function App() {
 
   return (
     <NotebookPage>
-      <header className="flex items-baseline justify-between pl-[72px] sm:pl-[94px] pr-5 pt-6 pb-3">
-        <h1 className="font-display font-bold text-base sm:text-lg text-ink tracking-[0.2em]">one memory</h1>
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 pl-[72px] sm:pl-[94px] pr-5 pt-6 pb-3">
+        <h1 className="whitespace-nowrap font-display font-bold text-base sm:text-lg text-ink tracking-[0.2em]">one memory</h1>
         <div className="flex items-baseline gap-3 text-[11px] text-pencil-dark">
-          {streak > 0 && <span>🔥 {streak}日連続</span>}
-          <button onClick={() => setShowSettings(true)} className="hover:text-ink transition-colors">設定</button>
-          <button onClick={handleLogout} className="hover:text-ink transition-colors">ログアウト</button>
+          {streak > 0 && <span className="whitespace-nowrap">🔥 {streak}日連続</span>}
+          <button onClick={() => setShowSettings(true)} className="whitespace-nowrap hover:text-ink transition-colors">設定</button>
+          <button onClick={handleLogout} className="whitespace-nowrap hover:text-ink transition-colors">ログアウト</button>
         </div>
       </header>
 
