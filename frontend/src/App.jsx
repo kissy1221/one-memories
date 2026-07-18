@@ -162,63 +162,64 @@ function AuthForm({ onAuth, onBack }) {
     }
   }
 
+  const inputClass =
+    "w-full bg-transparent text-sm text-ink placeholder:text-pencil border-0 border-b border-rule focus:border-ink outline-none px-1 py-2 rounded-none";
+
   return (
-    <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-light tracking-[0.2em] text-stone-700 text-center mb-10">one memory</h1>
-        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
-          <p className="text-stone-500 text-sm font-light tracking-wider mb-6 text-center">
-            {mode === "login" ? "LOGIN" : "SIGN UP"}
-          </p>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="メールアドレス"
-              required
-              className="w-full text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2.5 font-light outline-none focus:border-stone-400 bg-white"
-              disabled={submitting}
-            />
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="パスワード"
-              required
-              minLength={8}
-              className="w-full text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2.5 font-light outline-none focus:border-stone-400 bg-white"
-              disabled={submitting}
-            />
-            {error && <p className="text-red-400 text-xs text-center">{error}</p>}
+    <div className="min-h-screen bg-desk flex items-center justify-center px-4">
+      <div className="w-full max-w-sm bg-paper border border-scrap-edge rounded-sm shadow-[0_6px_18px_rgba(0,0,0,0.25)] p-8">
+        <h1 className="font-display font-bold text-xl text-ink text-center tracking-[0.2em] mb-1">one memory</h1>
+        <p className="text-pencil-dark text-[11px] text-center tracking-[0.3em] mb-8">
+          {mode === "login" ? "ログイン" : "新規登録"}
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="メールアドレス"
+            required
+            className={inputClass}
+            disabled={submitting}
+          />
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="パスワード"
+            required
+            minLength={8}
+            className={inputClass}
+            disabled={submitting}
+          />
+          {error && <p className="text-ink-red text-xs text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={submitting}
+            className="w-full py-2.5 bg-ink text-paper text-sm rounded hover:bg-cover-dark transition-colors disabled:opacity-30 mt-1"
+          >
+            {submitting ? "..." : mode === "login" ? "ログイン" : "登録する"}
+          </button>
+        </form>
+        <p className="text-center text-pencil-dark text-xs mt-6">
+          {mode === "login" ? "アカウントをお持ちでない方は" : "すでにアカウントをお持ちの方は"}
+          <button
+            onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); }}
+            className="underline ml-1 hover:text-ink"
+          >
+            {mode === "login" ? "新規登録" : "ログイン"}
+          </button>
+        </p>
+        {onBack && (
+          <p className="text-center mt-4">
             <button
-              type="submit"
-              disabled={submitting}
-              className="w-full py-2.5 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide disabled:opacity-30 hover:bg-stone-700 transition-colors mt-2"
+              onClick={onBack}
+              className="text-pencil-dark/80 text-xs hover:text-ink transition-colors"
             >
-              {submitting ? "..." : mode === "login" ? "ログイン" : "登録する"}
-            </button>
-          </form>
-          <p className="text-center text-stone-400 text-xs mt-6">
-            {mode === "login" ? "アカウントをお持ちでない方は" : "すでにアカウントをお持ちの方は"}
-            <button
-              onClick={() => { setMode(mode === "login" ? "signup" : "login"); setError(null); }}
-              className="underline ml-1 hover:text-stone-600"
-            >
-              {mode === "login" ? "新規登録" : "ログイン"}
+              ← トップに戻る
             </button>
           </p>
-          {onBack && (
-            <p className="text-center mt-4">
-              <button
-                onClick={onBack}
-                className="text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
-              >
-                ← トップに戻る
-              </button>
-            </p>
-          )}
-        </div>
+        )}
       </div>
     </div>
   );
