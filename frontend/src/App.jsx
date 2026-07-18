@@ -50,7 +50,7 @@ function NotebookCover({ onStart }) {
             今日のひとことが、<br />1年後の宝物になる。
           </p>
           <p className="mt-5 text-pencil-dark text-[10px]">
-            氏名：<span className="font-hand text-ink text-xs">あなた</span>　　1冊目
+            氏名：<span className="font-hand text-ink text-xs">あなた</span>{"　　1冊目"}
           </p>
         </div>
         <button
@@ -258,7 +258,7 @@ function TodayCard({ post }) {
     <section className="bg-ruled pl-[72px] sm:pl-[94px] pr-5">
       <p className="text-[11px] text-pencil-dark leading-[28px]">
         {formatDate(post.posted_on)}
-        {post.mood_emoji && <>　きぶん <span className="text-sm">{post.mood_emoji}</span></>}
+        {post.mood_emoji && <>{" きぶん "}<span className="text-sm">{post.mood_emoji}</span></>}
       </p>
       <p className="font-hand text-[15px] text-ink leading-[28px] whitespace-pre-wrap pb-[28px]">{post.content}</p>
     </section>
@@ -857,9 +857,9 @@ export default function App() {
           {groupByYearMonth(history).map(([month, monthPosts]) => (
             <div key={month}>
               <p className="text-center text-[11px] text-pencil-dark tracking-[0.25em] leading-[28px]">
-                <span aria-hidden="true">─　</span>
+                <span aria-hidden="true">{"─　"}</span>
                 <span>{month}</span>
-                <span aria-hidden="true">　─</span>
+                <span aria-hidden="true">{"　─"}</span>
               </p>
               {monthPosts.map((post) => (
                 <HistoryItem key={post.id} post={post} />
