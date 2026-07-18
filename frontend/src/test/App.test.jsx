@@ -55,7 +55,7 @@ describe("App", () => {
     it("未ログイン時はヒーローページが表示される", () => {
       localStorage.clear();
       render(<App />);
-      expect(screen.getAllByRole("button", { name: "無料ではじめる" })[0]).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "ノートをひらく" })[0]).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "ログイン" })).toBeInTheDocument();
     });
 
@@ -77,7 +77,7 @@ describe("App", () => {
     it("はじめるボタンを押すとログインフォームが表示される", async () => {
       localStorage.clear();
       render(<App />);
-      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      await userEvent.click(screen.getAllByRole("button", { name: "ノートをひらく" })[0]);
       expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("パスワード")).toBeInTheDocument();
     });
@@ -92,11 +92,11 @@ describe("App", () => {
     it("認証フォームからトップに戻るとヒーローページが表示される", async () => {
       localStorage.clear();
       render(<App />);
-      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      await userEvent.click(screen.getAllByRole("button", { name: "ノートをひらく" })[0]);
       expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
 
       await userEvent.click(screen.getByRole("button", { name: "← トップに戻る" }));
-      expect(screen.getAllByRole("button", { name: "無料ではじめる" })[0]).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "ノートをひらく" })[0]).toBeInTheDocument();
     });
   });
 
@@ -104,7 +104,7 @@ describe("App", () => {
     it("未ログイン時はヒーローページからログインフォームに進める", async () => {
       localStorage.clear();
       render(<App />);
-      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      await userEvent.click(screen.getAllByRole("button", { name: "ノートをひらく" })[0]);
       expect(screen.getByPlaceholderText("メールアドレス")).toBeInTheDocument();
       expect(screen.getByPlaceholderText("パスワード")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "ログイン" })).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("App", () => {
     it("新規登録に切り替えられる", async () => {
       localStorage.clear();
       render(<App />);
-      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      await userEvent.click(screen.getAllByRole("button", { name: "ノートをひらく" })[0]);
       await userEvent.click(screen.getByRole("button", { name: "新規登録" }));
       expect(screen.getByRole("button", { name: "登録する" })).toBeInTheDocument();
     });
@@ -125,7 +125,7 @@ describe("App", () => {
       api.fetchPosts.mockResolvedValue([]);
 
       render(<App />);
-      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      await userEvent.click(screen.getAllByRole("button", { name: "ノートをひらく" })[0]);
       await userEvent.type(screen.getByPlaceholderText("メールアドレス"), "test@example.com");
       await userEvent.type(screen.getByPlaceholderText("パスワード"), "password123");
       await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
@@ -140,7 +140,7 @@ describe("App", () => {
       api.login.mockRejectedValue(new Error("メールアドレスまたはパスワードが正しくありません"));
 
       render(<App />);
-      await userEvent.click(screen.getAllByRole("button", { name: "無料ではじめる" })[0]);
+      await userEvent.click(screen.getAllByRole("button", { name: "ノートをひらく" })[0]);
       await userEvent.type(screen.getByPlaceholderText("メールアドレス"), "wrong@example.com");
       await userEvent.type(screen.getByPlaceholderText("パスワード"), "wrongpass");
       await userEvent.click(screen.getByRole("button", { name: "ログイン" }));
@@ -160,7 +160,7 @@ describe("App", () => {
       });
 
       await userEvent.click(screen.getByRole("button", { name: "ログアウト" }));
-      expect(screen.getAllByRole("button", { name: "無料ではじめる" })[0]).toBeInTheDocument();
+      expect(screen.getAllByRole("button", { name: "ノートをひらく" })[0]).toBeInTheDocument();
     });
   });
 

@@ -20,40 +20,37 @@ const FEATURES = [
   },
 ];
 
-function AppMockup() {
+function PaperSheet({ children }) {
   return (
-    <div className="w-full max-w-xs mx-auto select-none" aria-hidden="true">
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-md p-6 mb-3">
-        <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">Today</p>
-        <div className="flex gap-1.5 mb-4">
-          {["😔", "😕", "😐", "🙂", "😊"].map((e, i) => (
-            <span
-              key={i}
-              className={`text-xl transition-all ${i === 3 ? "opacity-100" : "opacity-25"}`}
-            >
-              {e}
-            </span>
-          ))}
+    <div className="relative max-w-[560px] mx-auto bg-paper rounded-l-sm rounded-r-lg shadow-[0_6px_18px_rgba(0,0,0,0.25)]">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-3.5 rounded-l-sm bg-gradient-to-r from-black/15 to-transparent" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-14 sm:left-[78px] w-px bg-margin-red opacity-75" />
+      <div className="relative">{children}</div>
+    </div>
+  );
+}
+
+function NotebookCover({ onStart }) {
+  return (
+    <div className="max-w-[360px] mx-auto">
+      <div className="bg-cover-dark rounded-l rounded-r-[10px] px-7 py-9 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+        <div className="bg-paper border border-scrap-edge px-4 py-6 text-center">
+          <p className="text-pencil-dark text-[10px] tracking-[0.3em] mb-2">毎日ひとことの日記帳</p>
+          <h1 className="font-display font-black text-2xl text-ink tracking-[0.12em]">one memory</h1>
+          <div aria-hidden="true" className="h-px bg-margin-red mx-6 my-4" />
+          <p className="font-hand text-ink text-sm leading-7">
+            今日のひとことが、<br />1年後の宝物になる。
+          </p>
+          <p className="mt-5 text-pencil-dark text-[10px]">
+            氏名：<span className="font-hand text-ink text-xs">あなた</span>　　1冊目
+          </p>
         </div>
-        <p className="text-stone-700 text-sm font-light leading-relaxed">
-          桜が満開だった。お花見できてよかった。来年も見たいな。🌸
-        </p>
-        <p className="mt-4 text-stone-300 text-xs">2025年3月28日（金）</p>
-      </div>
-
-      <div className="flex items-center justify-center gap-2 my-2">
-        <div className="h-px flex-1 bg-stone-200" />
-        <p className="text-stone-400 text-xs font-light whitespace-nowrap">1年後、通知が届く</p>
-        <div className="h-px flex-1 bg-stone-200" />
-      </div>
-
-      <div className="bg-amber-50 rounded-2xl border border-amber-200 shadow-sm p-6">
-        <p className="text-amber-500 text-xs font-light mb-3 tracking-wide">
-          1 Year Ago · 2025年3月28日のあなた
-        </p>
-        <p className="text-stone-700 text-sm font-light leading-relaxed">
-          桜が満開だった。お花見できてよかった。来年も見たいな。🌸
-        </p>
+        <button
+          onClick={onStart}
+          className="mt-7 mx-auto block bg-paper text-ink text-sm rounded px-8 py-2.5 hover:bg-scrap transition-colors"
+        >
+          ノートをひらく
+        </button>
       </div>
     </div>
   );
@@ -61,101 +58,66 @@ function AppMockup() {
 
 function HeroPage({ onStart }) {
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col">
-      {/* Nav */}
-      <nav className="flex items-center justify-between px-6 py-5 max-w-5xl mx-auto w-full border-b border-stone-200">
-        <span className="text-xl font-light tracking-[0.2em] text-stone-700">one memory</span>
-        <button
-          onClick={onStart}
-          className="text-sm text-stone-500 font-light hover:text-stone-700 transition-colors"
-        >
+    <div className="min-h-screen bg-desk">
+      <nav className="max-w-[560px] mx-auto flex justify-end px-4 pt-6">
+        <button onClick={onStart} className="text-paper/80 text-sm hover:text-paper transition-colors">
           ログイン
         </button>
       </nav>
 
-      {/* Hero */}
-      <section className="max-w-5xl mx-auto px-6 pt-14 pb-20 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-        <div>
-          <p className="text-stone-400 text-xs tracking-[0.35em] font-light mb-6 uppercase">
-            毎日ひとことの日記アプリ
-          </p>
-          <h2 className="text-4xl sm:text-5xl font-light text-stone-800 leading-snug mb-6">
-            今日のひとことが、<br />
-            <span className="text-amber-600">1年後の宝物</span>になる。
-          </h2>
-          <p className="text-stone-400 text-base font-light leading-relaxed mb-8 max-w-md">
-            1日1回だけ投稿できる、シンプルな日記アプリです。
-            書いた記憶は1年後に自動で蘇り、過去の自分と向き合えます。
-            三日坊主でも、ひとことでも、それでいい。
-          </p>
-          <div className="flex gap-3 items-center">
-            <button
-              onClick={onStart}
-              className="px-8 py-3 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide hover:bg-stone-700 transition-colors"
-            >
-              無料ではじめる
-            </button>
-            <button
-              onClick={onStart}
-              className="text-sm text-stone-400 font-light hover:text-stone-600 transition-colors"
-            >
-              ログイン →
-            </button>
-          </div>
-        </div>
-
-        <AppMockup />
+      <section className="px-4 pt-8 pb-16 sm:pt-12 sm:pb-20">
+        <NotebookCover onStart={onStart} />
+        <p className="mt-8 text-center text-paper/60 text-xs tracking-[0.2em]">
+          1日1回だけ書ける、ひとこと日記帳
+        </p>
       </section>
 
-      {/* 1年前の記憶 highlight */}
-      <section className="bg-amber-50 border-y border-amber-100 py-16">
-        <div className="max-w-5xl mx-auto px-6 grid grid-cols-1 sm:grid-cols-3 gap-2 items-center text-center sm:text-left">
-          <div className="sm:col-span-2">
-            <p className="text-amber-500 text-xs tracking-widest font-light mb-3 uppercase">
-              one memory のコア機能
-            </p>
-            <h3 className="text-2xl font-light text-stone-800 mb-3 leading-snug">
-              1年前の今日、あなたは<br className="hidden sm:block" />何を感じていましたか？
-            </h3>
-            <p className="text-stone-400 text-sm font-light leading-relaxed max-w-md">
-              投稿した日からちょうど1年後、その記録が画面に蘇ります。
-              去年の自分の言葉に、笑ったり、懐かしんだり、成長を感じたり。
-              日々の小さな記録が、長い時間をかけて意味を持ちはじめます。
-            </p>
-          </div>
-          <div className="text-5xl sm:text-6xl text-center">📅</div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section className="bg-white border-y border-stone-200 py-20">
-        <div className="max-w-5xl mx-auto px-6">
-          <p className="text-stone-400 text-xs tracking-widest font-light mb-10 uppercase text-center">Features</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <section className="px-3 sm:px-6 pb-16">
+        <PaperSheet>
+          <p className="pl-[72px] sm:pl-[94px] pr-5 pt-7 text-pencil-dark text-[11px] tracking-[0.25em] leading-[28px]">
+            このノートにできること
+          </p>
+          <div className="bg-ruled pl-[72px] sm:pl-[94px] pr-5 pb-4">
             {FEATURES.map((f) => (
-              <div key={f.title} className="rounded-2xl border border-stone-200 p-6">
-                <p className="text-stone-700 text-sm font-medium mb-2">{f.title}</p>
-                <p className="text-stone-500 text-sm font-light leading-relaxed">{f.desc}</p>
+              <div key={f.title} className="pt-[28px]">
+                <p className="text-ink text-sm font-medium leading-[28px]">{f.title}</p>
+                <p className="font-hand text-ink/80 text-sm leading-[28px]">{f.desc}</p>
               </div>
             ))}
           </div>
-        </div>
+
+          <div className="pl-[72px] sm:pl-[94px] pr-5 pt-6">
+            <h3 className="font-display font-bold text-lg text-ink leading-relaxed">
+              1年前の今日、あなたは何を感じていましたか？
+            </h3>
+            <p className="mt-2 text-pencil-dark text-sm leading-relaxed">
+              投稿した日からちょうど1年後、その記録がページに貼り出されます。
+              去年の自分の言葉に、笑ったり、懐かしんだり、成長を感じたり。
+            </p>
+            <div className="relative bg-scrap border border-scrap-edge shadow-[1px_2px_4px_rgba(0,0,0,0.08)] -rotate-[0.7deg] px-4 py-3 mt-5 mb-2">
+              <div aria-hidden="true" className="absolute -top-2 left-4 w-12 h-3.5 bg-margin-red/25 -rotate-2" />
+              <p className="text-[10px] tracking-[0.15em] text-pencil-dark mb-1">1年前のきょう ─ 2025年7月18日</p>
+              <p className="font-hand text-[13px] text-pencil-dark leading-relaxed">
+                桜が満開だった。お花見できてよかった。来年も見たいな。🌸
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-scrap-edge mt-8 py-10 text-center px-6">
+            <p className="font-display font-bold text-lg text-ink mb-2">今日から、書きはじめよう。</p>
+            <p className="text-pencil-dark text-xs mb-6">アカウント登録は1分、無料で使えます。</p>
+            <button
+              onClick={onStart}
+              className="bg-ink text-paper text-sm rounded px-9 py-3 hover:bg-cover-dark transition-colors"
+            >
+              ノートをひらく
+            </button>
+          </div>
+        </PaperSheet>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="border-b border-stone-200 py-16 text-center px-6">
-        <h3 className="text-2xl font-light text-stone-700 mb-3">今日から、はじめよう。</h3>
-        <p className="text-stone-400 text-sm font-light mb-8">アカウント登録は1分、無料で使えます。</p>
-        <button
-          onClick={onStart}
-          className="px-10 py-3.5 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide hover:bg-stone-700 transition-colors"
-        >
-          無料ではじめる
-        </button>
-      </section>
-
-      <footer className="py-6 text-center">
-        <p className="text-stone-300 text-xs font-light tracking-widest">one memory</p>
+      <footer className="pb-8 text-center">
+        <p className="text-paper/50 text-xs tracking-[0.3em] font-display">one memory</p>
       </footer>
     </div>
   );
