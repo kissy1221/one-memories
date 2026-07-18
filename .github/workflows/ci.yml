@@ -52,7 +52,7 @@ jobs:
         run: bundle exec rspec
 
   frontend:
-    name: Vitest
+    name: Frontend
     runs-on: ubuntu-latest
 
     defaults:
@@ -65,9 +65,17 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: "24"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install deps
-        run: rm -f package-lock.json && npm install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
 
       - name: Vitest
         run: npm test
