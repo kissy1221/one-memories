@@ -305,7 +305,7 @@ describe("App", () => {
 
       await waitFor(() => {
         expect(screen.getByText("去年の今日の記録")).toBeInTheDocument();
-        expect(screen.getByText(/のあなた/)).toBeInTheDocument();
+        expect(screen.getByText(/1年前のきょう/)).toBeInTheDocument();
       });
     });
 
@@ -317,7 +317,7 @@ describe("App", () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/1年前のきょう/)).not.toBeInTheDocument();
       });
     });
 
@@ -331,7 +331,7 @@ describe("App", () => {
       await waitFor(() => {
         expect(screen.getByText("今日もいい天気だった")).toBeInTheDocument();
         expect(screen.getByText("昨日の記録")).toBeInTheDocument();
-        expect(screen.queryByText(/のあなた/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/1年前のきょう/)).not.toBeInTheDocument();
       });
     });
   });
@@ -416,7 +416,7 @@ describe("App", () => {
       render(<App />);
 
       await waitFor(() => {
-        expect(screen.getByText("まだ記録がありません")).toBeInTheDocument();
+        expect(screen.getByText("まだ何も書かれていません。最初のひとことをどうぞ。")).toBeInTheDocument();
       });
     });
 

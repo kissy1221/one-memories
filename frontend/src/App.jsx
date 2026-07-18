@@ -320,13 +320,13 @@ function PostForm({ onSubmit }) {
 
 function OneYearAgoCard({ post }) {
   return (
-    <section className="mt-10">
-      <p className="text-stone-400 text-xs tracking-widest font-light mb-4 uppercase">1 Year Ago</p>
-      <div className="bg-amber-50 rounded-2xl border border-amber-100 p-8">
-        <p className="text-amber-600 text-xs font-light mb-3 tracking-wide">
-          {formatDate(post.posted_on)} のあなた
+    <section className="ml-[72px] sm:ml-[94px] mr-5 mt-5 mb-3">
+      <div className="relative bg-scrap border border-scrap-edge shadow-[1px_2px_4px_rgba(0,0,0,0.08)] -rotate-[0.7deg] px-4 py-3">
+        <div aria-hidden="true" className="absolute -top-2 left-4 w-12 h-3.5 bg-margin-red/25 -rotate-2" />
+        <p className="text-[10px] tracking-[0.15em] text-pencil-dark mb-1">
+          1年前のきょう ─ {formatDate(post.posted_on)}
         </p>
-        <p className="text-stone-700 text-base leading-relaxed whitespace-pre-wrap font-light">{post.content}</p>
+        <p className="font-hand text-[13px] text-pencil-dark leading-relaxed whitespace-pre-wrap">{post.content}</p>
       </div>
     </section>
   );
@@ -489,20 +489,16 @@ function groupByYearMonth(posts) {
 }
 
 function HistoryItem({ post }) {
+  const d = new Date(post.posted_on + "T00:00:00");
   return (
-    <div className="flex gap-6 py-5 border-b border-stone-100 last:border-0">
-      <div className="text-right min-w-[64px]">
-        <span className="text-xs text-stone-400 font-light leading-relaxed">
-          {formatDate(post.posted_on).replace(/\d{4}年/, "").replace("日", "").split("（")[0].trim()}
-        </span>
-        <span className="block text-xs text-stone-300">
-          {new Date(post.posted_on + "T00:00:00").toLocaleDateString("ja-JP", { weekday: "short" })}
-        </span>
+    <div className="flex">
+      <div className="w-14 sm:w-[78px] shrink-0 text-right pr-2.5 text-[11px] text-pencil-dark leading-[28px]">
+        {d.getDate()} {d.toLocaleDateString("ja-JP", { weekday: "short" })}
       </div>
-      {post.mood_emoji && (
-        <span className="text-lg mt-0.5">{post.mood_emoji}</span>
-      )}
-      <p className="text-stone-600 text-sm leading-relaxed font-light flex-1 whitespace-pre-wrap">{post.content}</p>
+      <p className="flex-1 pl-4 pr-5 font-hand text-[13px] text-ink/85 leading-[28px] whitespace-pre-wrap">
+        {post.mood_emoji && <span className="mr-1.5">{post.mood_emoji}</span>}
+        {post.content}
+      </p>
     </div>
   );
 }
@@ -855,23 +851,26 @@ export default function App() {
       {!loading && oneYearAgo && <OneYearAgoCard post={oneYearAgo} />}
 
       {history.length > 0 && (
-        <section className="mt-10 px-5">
-          <p className="text-stone-400 text-xs tracking-widest font-light mb-6 uppercase">Past</p>
+        <section className="bg-ruled mt-2 pb-[28px]">
           {groupByYearMonth(history).map(([month, monthPosts]) => (
-            <div key={month} className="mb-6">
-              <p className="text-stone-300 text-xs font-light mb-2 tracking-wide">{month}</p>
-              <div className="bg-white rounded-2xl shadow-sm border border-stone-100 px-8">
-                {monthPosts.map((post) => (
-                  <HistoryItem key={post.id} post={post} />
-                ))}
-              </div>
+            <div key={month}>
+              <p className="text-center text-[11px] text-pencil-dark tracking-[0.25em] leading-[28px]">
+                <span aria-hidden="true">─　</span>
+                <span>{month}</span>
+                <span aria-hidden="true">　─</span>
+              </p>
+              {monthPosts.map((post) => (
+                <HistoryItem key={post.id} post={post} />
+              ))}
             </div>
           ))}
         </section>
       )}
 
       {!loading && posts.length === 0 && !today && (
-        <p className="text-center text-stone-300 text-sm mt-16 font-light">まだ記録がありません</p>
+        <p className="bg-ruled text-center font-hand text-pencil-dark text-sm leading-[28px] pb-[56px]">
+          まだ何も書かれていません。最初のひとことをどうぞ。
+        </p>
       )}
 
       <div className="px-5 pb-8">
