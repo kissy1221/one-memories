@@ -474,6 +474,157 @@ describe("App", () => {
     });
   });
 
+  describe("アカウント設定", () => {
+    beforeEach(() => {
+      api.fetchToday.mockResolvedValue(null);
+      api.fetchPosts.mockResolvedValue([]);
+    });
+
+    it("設定ボタンが表示される", async () => {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+    });
+
+    it("設定ボタンをクリックするとアカウント設定画面が表示される", async () => {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+
+      expect(screen.getByText("アカウント設定")).toBeInTheDocument();
+      expect(screen.getAllByText("test@example.com").length).toBeGreaterThan(0);
+    });
+
+    it("戻るボタンでメイン画面に戻る", async () => {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+      expect(screen.getByText("アカウント設定")).toBeInTheDocument();
+
+      await userEvent.click(screen.getByRole("button", { name: "← 戻る" }));
+
+      await waitFor(() => {
+        expect(screen.queryByText("アカウント設定")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+    });
+
+    it("メールアドレス変更リンクを押すとフォームが表示される", async () => {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+
+      const changeButtons = screen.getAllByRole("button", { name: "変更" });
+      await userEvent.click(changeButtons[0]);
+
+      expect(screen.getByPlaceholderText("現在のパスワード")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("新しいメールアドレス")).toBeInTheDocument();
+    });
+
+    it("メールアドレス変更が成功するとメールが更新される", async () => {
+      api.updateUser.mockResolvedValue({ email: "new@example.com", token: "new-token" });
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+
+      const changeButtons = screen.getAllByRole("button", { name: "変更" });
+      await userEvent.click(changeButtons[0]);
+
+      await userEvent.type(screen.getByPlaceholderText("現在のパスワード"), "password123");
+      await userEvent.clear(screen.getByPlaceholderText("新しいメールアドレス"));
+      await userEvent.type(screen.getByPlaceholderText("新しいメールアドレス"), "new@example.com");
+      await userEvent.click(screen.getByRole("button", { name: "保存" }));
+
+      await waitFor(() => {
+        expect(api.updateUser).toHaveBeenCalledWith({
+          current_password: "password123",
+          email: "new@example.com",
+        });
+      });
+    });
+
+    it("パスワード変更フォームが表示される", async () => {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+
+      const changeButtons = screen.getAllByRole("button", { name: "変更" });
+      await userEvent.click(changeButtons[1]);
+
+      expect(screen.getByPlaceholderText("新しいパスワード（8文字以上）")).toBeInTheDocument();
+      expect(screen.getByPlaceholderText("新しいパスワード（確認）")).toBeInTheDocument();
+    });
+
+    it("パスワード不一致ではエラーが表示される", async () => {
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+
+      const changeButtons = screen.getAllByRole("button", { name: "変更" });
+      await userEvent.click(changeButtons[1]);
+
+      await userEvent.type(screen.getByPlaceholderText("現在のパスワード"), "password123");
+      await userEvent.type(screen.getByPlaceholderText("新しいパスワード（8文字以上）"), "newpassword");
+      await userEvent.type(screen.getByPlaceholderText("新しいパスワード（確認）"), "mismatch");
+      await userEvent.click(screen.getByRole("button", { name: "保存" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("新しいパスワードが一致しません。")).toBeInTheDocument();
+      });
+    });
+
+    it("API エラー時にエラーメッセージが表示される", async () => {
+      api.updateUser.mockRejectedValue(new Error("現在のパスワードが正しくありません"));
+
+      render(<App />);
+
+      await waitFor(() => {
+        expect(screen.getByRole("button", { name: "設定" })).toBeInTheDocument();
+      });
+
+      await userEvent.click(screen.getByRole("button", { name: "設定" }));
+
+      const changeButtons = screen.getAllByRole("button", { name: "変更" });
+      await userEvent.click(changeButtons[0]);
+
+      await userEvent.type(screen.getByPlaceholderText("現在のパスワード"), "wrongpass");
+      await userEvent.clear(screen.getByPlaceholderText("新しいメールアドレス"));
+      await userEvent.type(screen.getByPlaceholderText("新しいメールアドレス"), "new@example.com");
+      await userEvent.click(screen.getByRole("button", { name: "保存" }));
+
+      await waitFor(() => {
+        expect(screen.getByText("現在のパスワードが正しくありません")).toBeInTheDocument();
+      });
+    });
+  });
+
   describe("エクスポート", () => {
     it("投稿がある場合にExportセクションが表示される", async () => {
       api.fetchToday.mockResolvedValue(TODAY_POST);

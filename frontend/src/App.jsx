@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, fetchReminder, registerReminder, updateReminder, exportPosts, login, signup } from "./api";
+import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, fetchReminder, registerReminder, updateReminder, exportPosts, login, signup, updateUser } from "./api";
 
 const FEATURES = [
   {
@@ -573,9 +573,228 @@ function ExportSection() {
   );
 }
 
+function UserSettings({ userEmail, onEmailChange, onClose }) {
+  const [section, setSection] = useState(null); // null | "email" | "password"
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newEmail, setNewEmail] = useState(userEmail);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [status, setStatus] = useState(null);
+
+  function resetForm() {
+    setCurrentPassword("");
+    setNewEmail(userEmail);
+    setNewPassword("");
+    setConfirmPassword("");
+    setStatus(null);
+  }
+
+  function handleSectionChange(s) {
+    setSection(s);
+    resetForm();
+  }
+
+  async function handleEmailSubmit(e) {
+    e.preventDefault();
+    setSubmitting(true);
+    setStatus(null);
+    try {
+      const data = await updateUser({ current_password: currentPassword, email: newEmail });
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("email", data.email);
+      onEmailChange(data.email);
+      setStatus({ ok: true, message: "メールアドレスを更新しました。" });
+      setSection(null);
+    } catch (err) {
+      setStatus({ ok: false, message: err.message });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handlePasswordSubmit(e) {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setStatus({ ok: false, message: "新しいパスワードが一致しません。" });
+      return;
+    }
+    setSubmitting(true);
+    setStatus(null);
+    try {
+      const data = await updateUser({ current_password: currentPassword, password: newPassword, password_confirmation: confirmPassword });
+      localStorage.setItem("token", data.token);
+      setStatus({ ok: true, message: "パスワードを更新しました。" });
+      setSection(null);
+      resetForm();
+    } catch (err) {
+      setStatus({ ok: false, message: err.message });
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const inputClass = "w-full text-sm text-stone-700 border border-stone-200 rounded-full px-4 py-2.5 font-light outline-none focus:border-stone-400 bg-white";
+
+  return (
+    <div className="min-h-screen bg-stone-50">
+      <div className="max-w-xl mx-auto px-4 py-12">
+        <header className="mb-10">
+          <button
+            onClick={onClose}
+            className="text-stone-400 text-xs font-light hover:text-stone-600 transition-colors mb-6 block"
+          >
+            ← 戻る
+          </button>
+          <h1 className="text-xl font-light tracking-[0.2em] text-stone-700">アカウント設定</h1>
+          <p className="mt-1 text-stone-400 text-xs font-light">{userEmail}</p>
+        </header>
+
+        <div className="bg-white rounded-2xl shadow-sm border border-stone-100 divide-y divide-stone-100">
+          {/* メールアドレス変更 */}
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-stone-700 text-sm font-light">メールアドレス</p>
+              {section !== "email" && (
+                <button
+                  onClick={() => handleSectionChange("email")}
+                  className="text-xs text-stone-400 hover:text-stone-600 font-light"
+                >
+                  変更
+                </button>
+              )}
+            </div>
+            <p className="text-stone-400 text-xs font-light">{userEmail}</p>
+
+            {section === "email" && (
+              <form onSubmit={handleEmailSubmit} className="mt-4 flex flex-col gap-3">
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="現在のパスワード"
+                  required
+                  className={inputClass}
+                  disabled={submitting}
+                />
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  placeholder="新しいメールアドレス"
+                  required
+                  className={inputClass}
+                  disabled={submitting}
+                />
+                {status && (
+                  <p className={`text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+                    {status.message}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 bg-stone-800 text-white text-sm rounded-full font-light hover:bg-stone-700 transition-colors disabled:opacity-30"
+                  >
+                    {submitting ? "保存中..." : "保存"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSectionChange(null)}
+                    className="px-4 py-2 text-stone-400 text-sm font-light hover:text-stone-600"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* パスワード変更 */}
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-stone-700 text-sm font-light">パスワード</p>
+              {section !== "password" && (
+                <button
+                  onClick={() => handleSectionChange("password")}
+                  className="text-xs text-stone-400 hover:text-stone-600 font-light"
+                >
+                  変更
+                </button>
+              )}
+            </div>
+            <p className="text-stone-400 text-xs font-light">••••••••</p>
+
+            {section === "password" && (
+              <form onSubmit={handlePasswordSubmit} className="mt-4 flex flex-col gap-3">
+                <input
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="現在のパスワード"
+                  required
+                  className={inputClass}
+                  disabled={submitting}
+                />
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="新しいパスワード（8文字以上）"
+                  required
+                  minLength={8}
+                  className={inputClass}
+                  disabled={submitting}
+                />
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="新しいパスワード（確認）"
+                  required
+                  minLength={8}
+                  className={inputClass}
+                  disabled={submitting}
+                />
+                {status && (
+                  <p className={`text-xs font-light ${status.ok ? "text-stone-500" : "text-red-400"}`}>
+                    {status.message}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    className="px-5 py-2 bg-stone-800 text-white text-sm rounded-full font-light hover:bg-stone-700 transition-colors disabled:opacity-30"
+                  >
+                    {submitting ? "保存中..." : "保存"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSectionChange(null)}
+                    className="px-4 py-2 text-stone-400 text-sm font-light hover:text-stone-600"
+                  >
+                    キャンセル
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+
+        {section === null && status?.ok && (
+          <p className="mt-4 text-center text-stone-500 text-xs font-light">{status.message}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
   const [userEmail, setUserEmail] = useState(() => localStorage.getItem("email"));
   const [showAuth, setShowAuth] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [today, setToday] = useState(undefined);
   const [posts, setPosts] = useState([]);
   const [oneYearAgo, setOneYearAgo] = useState(null);
@@ -623,6 +842,16 @@ export default function App() {
   if (!userEmail && !showAuth) return <HeroPage onStart={() => setShowAuth(true)} />;
   if (!userEmail) return <AuthForm onAuth={setUserEmail} onBack={() => setShowAuth(false)} />;
 
+  if (showSettings) {
+    return (
+      <UserSettings
+        userEmail={userEmail}
+        onEmailChange={(email) => setUserEmail(email)}
+        onClose={() => setShowSettings(false)}
+      />
+    );
+  }
+
   const history = posts.filter((p) => !today || p.id !== today.id);
 
   return (
@@ -638,12 +867,20 @@ export default function App() {
               🔥 {streak}日連続
             </p>
           )}
-          <button
-            onClick={handleLogout}
-            className="mt-3 text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
-          >
-            ログアウト
-          </button>
+          <div className="mt-3 flex items-center justify-center gap-4">
+            <button
+              onClick={() => setShowSettings(true)}
+              className="text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
+            >
+              設定
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
+            >
+              ログアウト
+            </button>
+          </div>
         </header>
 
         {loading ? (

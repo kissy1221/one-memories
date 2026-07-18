@@ -97,6 +97,23 @@ export async function exportPosts(type) {
   return res.blob();
 }
 
+export async function fetchCurrentUser() {
+  const res = handleResponse(await fetch(`${BASE}/api/v1/users/me`, { headers: authHeaders() }));
+  if (!res.ok) throw new Error("fetch failed");
+  return res.json();
+}
+
+export async function updateUser(params) {
+  const res = handleResponse(await fetch(`${BASE}/api/v1/users/me`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(params),
+  }));
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || data.errors?.[0] || "更新に失敗しました");
+  return data;
+}
+
 export async function createPost(content, mood = null) {
   const res = handleResponse(await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
