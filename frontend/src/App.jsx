@@ -55,7 +55,7 @@ function NotebookCover({ onStart }) {
         </div>
         <button
           onClick={onStart}
-          className="mt-7 mx-auto block bg-paper text-ink text-sm rounded px-8 py-2.5 hover:bg-scrap transition-colors"
+          className="mt-7 mx-auto block bg-paper text-ink text-sm rounded px-8 py-2.5 hover:bg-scrap transition-colors focus-visible:outline-paper"
         >
           ノートをひらく
         </button>
@@ -68,7 +68,7 @@ function HeroPage({ onStart }) {
   return (
     <div className="min-h-screen bg-desk">
       <nav className="max-w-[560px] mx-auto flex justify-end px-4 pt-6">
-        <button onClick={onStart} className="text-paper/80 text-sm hover:text-paper transition-colors">
+        <button onClick={onStart} className="text-paper/80 text-sm hover:text-paper transition-colors focus-visible:outline-paper">
           ログイン
         </button>
       </nav>
@@ -257,7 +257,7 @@ function TodayCard({ post }) {
   return (
     <section className="bg-ruled pl-[72px] sm:pl-[94px] pr-5">
       <p className="text-[11px] text-pencil-dark leading-[28px]">
-        {formatDate(post.posted_on)}
+        {new Date(post.posted_on + "T00:00:00").toLocaleDateString("ja-JP", { month: "long", day: "numeric", weekday: "short" })}
         {post.mood_emoji && <>{" きぶん "}<span className="text-sm">{post.mood_emoji}</span></>}
       </p>
       <p className="font-hand text-[15px] text-ink leading-[28px] whitespace-pre-wrap pb-[28px]">{post.content}</p>
@@ -305,7 +305,7 @@ function PostForm({ onSubmit }) {
       />
       <div className="flex items-center justify-end gap-4 h-[56px]">
         {error && <p className="text-ink-red text-xs">{error}</p>}
-        <span className={`text-xs ${remaining < 50 ? "text-ink-red" : "text-pencil"}`}>{remaining}</span>
+        <span className={`text-xs ${remaining < 50 ? "text-ink-red" : "text-pencil-dark"}`}>{remaining}</span>
         <button
           type="submit"
           disabled={!content.trim() || submitting}
@@ -870,7 +870,7 @@ export default function App() {
       )}
 
       {!loading && posts.length === 0 && !today && (
-        <p className="bg-ruled text-center font-hand text-pencil-dark text-sm leading-[28px] pb-[56px]">
+        <p className="bg-ruled text-center text-pencil-dark text-sm leading-[28px] pb-[56px]">
           まだ何も書かれていません。最初のひとことをどうぞ。
         </p>
       )}
