@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { fetchToday, fetchPosts, fetchOneYearAgo, fetchStreak, createPost, fetchReminder, registerReminder, updateReminder, exportPosts, login, signup, updateUser } from "./api";
+import type { Post, Reminder } from "./types";
+
+type StatusMessage = { ok: boolean; message: string };
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : "エラーが発生しました";
+}
 
 const FEATURES = [
   {
@@ -20,7 +27,7 @@ const FEATURES = [
   },
 ];
 
-function PaperSheet({ children }) {
+function PaperSheet({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative max-w-[560px] mx-auto bg-paper rounded-l-sm rounded-r-lg shadow-[0_6px_18px_rgba(0,0,0,0.25)]">
       <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-3.5 rounded-l-sm bg-gradient-to-r from-black/15 to-transparent" />
@@ -30,7 +37,7 @@ function PaperSheet({ children }) {
   );
 }
 
-function NotebookPage({ children }) {
+function NotebookPage({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-desk py-6 sm:py-10 px-3 sm:px-6">
       <PaperSheet>{children}</PaperSheet>
@@ -38,7 +45,7 @@ function NotebookPage({ children }) {
   );
 }
 
-function NotebookCover({ onStart }) {
+function NotebookCover({ onStart }: { onStart: () => void }) {
   return (
     <div className="max-w-[360px] mx-auto">
       <div className="bg-cover-dark rounded-l rounded-r-[10px] px-7 py-9 shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
@@ -64,7 +71,7 @@ function NotebookCover({ onStart }) {
   );
 }
 
-function HeroPage({ onStart }) {
+function HeroPage({ onStart }: { onStart: () => void }) {
   return (
     <div className="min-h-screen bg-desk">
       <nav className="max-w-[560px] mx-auto flex justify-end px-4 pt-6">
@@ -140,19 +147,19 @@ const MOODS = [
   { value: 5, emoji: "😊" },
 ];
 
-function formatDate(isoDate) {
+function formatDate(isoDate: string): string {
   const d = new Date(isoDate + "T00:00:00");
   return d.toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
 }
 
-function AuthForm({ onAuth, onBack }) {
-  const [mode, setMode] = useState("login");
+function AuthForm({ onAuth, onBack }: { onAuth: (email: string) => void; onBack?: () => void }) {
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
@@ -164,7 +171,7 @@ function AuthForm({ onAuth, onBack }) {
       localStorage.setItem("email", data.email);
       onAuth(data.email);
     } catch (err) {
-      setError(err.message);
+      setError(errorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -233,7 +240,7 @@ function AuthForm({ onAuth, onBack }) {
   );
 }
 
-function MoodPicker({ value, onChange }) {
+function MoodPicker({ value, onChange }: { value: number | null; onChange: (value: number | null) => void }) {
   return (
     <div className="flex gap-1">
       {MOODS.map((m) => (
@@ -253,7 +260,7 @@ function MoodPicker({ value, onChange }) {
   );
 }
 
-function TodayCard({ post }) {
+function TodayCard({ post }: { post: Post }) {
   return (
     <section className="bg-ruled pl-[72px] sm:pl-[94px] pr-5">
       <p className="text-[11px] text-pencil-dark leading-[28px]">
@@ -265,14 +272,14 @@ function TodayCard({ post }) {
   );
 }
 
-function PostForm({ onSubmit }) {
+function PostForm({ onSubmit }: { onSubmit: (content: string, mood: number | null) => Promise<Post> }) {
   const [content, setContent] = useState("");
-  const [mood, setMood] = useState(null);
+  const [mood, setMood] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const remaining = MAX_CHARS - content.length;
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!content.trim()) return;
     setSubmitting(true);
@@ -280,7 +287,7 @@ function PostForm({ onSubmit }) {
     try {
       return await onSubmit(content.trim(), mood);
     } catch (err) {
-      setError(err.message);
+      setError(errorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -318,7 +325,7 @@ function PostForm({ onSubmit }) {
   );
 }
 
-function OneYearAgoCard({ post }) {
+function OneYearAgoCard({ post }: { post: Post }) {
   return (
     <section className="ml-[72px] sm:ml-[94px] mr-5 mt-5 mb-3">
       <div className="relative bg-scrap border border-scrap-edge shadow-[1px_2px_4px_rgba(0,0,0,0.08)] -rotate-[0.7deg] px-4 py-3">
@@ -333,10 +340,10 @@ function OneYearAgoCard({ post }) {
 }
 
 function ReminderForm() {
-  const [reminder, setReminder] = useState(undefined); // undefined=loading, null=未設定
+  const [reminder, setReminder] = useState<Reminder | null | undefined>(undefined); // undefined=loading, null=未設定
   const [hour, setHour] = useState(21);
   const [editing, setEditing] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState<StatusMessage | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -348,7 +355,7 @@ function ReminderForm() {
       .catch(() => setReminder(null));
   }, []);
 
-  async function handleRegister(e) {
+  async function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setStatus(null);
@@ -358,7 +365,7 @@ function ReminderForm() {
       setEditing(false);
       setStatus({ ok: true, message: `${String(data.notify_hour).padStart(2, "0")}:00 にリマインダーを登録しました。` });
     } catch (err) {
-      setStatus({ ok: false, message: err.message });
+      setStatus({ ok: false, message: errorMessage(err) });
     } finally {
       setSubmitting(false);
     }
@@ -370,9 +377,9 @@ function ReminderForm() {
     setStatus(null);
     try {
       const data = await updateReminder({ active: !reminder.active });
-      setReminder((prev) => ({ ...prev, active: data.active }));
+      setReminder({ notify_hour: reminder.notify_hour, active: data.active });
     } catch (err) {
-      setStatus({ ok: false, message: err.message });
+      setStatus({ ok: false, message: errorMessage(err) });
     } finally {
       setSubmitting(false);
     }
@@ -476,9 +483,9 @@ function ReminderForm() {
   );
 }
 
-function groupByYearMonth(posts) {
-  const groups = [];
-  const seen = {};
+function groupByYearMonth(posts: Post[]): [string, Post[]][] {
+  const groups: [string, Post[]][] = [];
+  const seen: Record<string, Post[]> = {};
   for (const post of posts) {
     const d = new Date(post.posted_on + "T00:00:00");
     const key = d.toLocaleDateString("ja-JP", { year: "numeric", month: "long" });
@@ -491,7 +498,7 @@ function groupByYearMonth(posts) {
   return groups;
 }
 
-function HistoryItem({ post }) {
+function HistoryItem({ post }: { post: Post }) {
   const d = new Date(post.posted_on + "T00:00:00");
   return (
     <div className="flex">
@@ -507,9 +514,9 @@ function HistoryItem({ post }) {
 }
 
 function ExportSection() {
-  const [exporting, setExporting] = useState(null);
+  const [exporting, setExporting] = useState<string | null>(null);
 
-  async function handleExport(type) {
+  async function handleExport(type: string) {
     setExporting(type);
     try {
       const blob = await exportPosts(type);
@@ -547,14 +554,14 @@ function ExportSection() {
   );
 }
 
-function UserSettings({ userEmail, onEmailChange, onClose }) {
-  const [section, setSection] = useState(null); // null | "email" | "password"
+function UserSettings({ userEmail, onEmailChange, onClose }: { userEmail: string; onEmailChange: (email: string) => void; onClose: () => void }) {
+  const [section, setSection] = useState<"email" | "password" | null>(null); // null | "email" | "password"
   const [currentPassword, setCurrentPassword] = useState("");
   const [newEmail, setNewEmail] = useState(userEmail);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [status, setStatus] = useState<StatusMessage | null>(null);
 
   function resetForm() {
     setCurrentPassword("");
@@ -564,12 +571,12 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
     setStatus(null);
   }
 
-  function handleSectionChange(s) {
+  function handleSectionChange(s: "email" | "password" | null) {
     setSection(s);
     resetForm();
   }
 
-  async function handleEmailSubmit(e) {
+  async function handleEmailSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSubmitting(true);
     setStatus(null);
@@ -581,13 +588,13 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
       setStatus({ ok: true, message: "メールアドレスを更新しました。" });
       setSection(null);
     } catch (err) {
-      setStatus({ ok: false, message: err.message });
+      setStatus({ ok: false, message: errorMessage(err) });
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function handlePasswordSubmit(e) {
+  async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       setStatus({ ok: false, message: "新しいパスワードが一致しません。" });
@@ -602,7 +609,7 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
       setSection(null);
       resetForm();
     } catch (err) {
-      setStatus({ ok: false, message: err.message });
+      setStatus({ ok: false, message: errorMessage(err) });
     } finally {
       setSubmitting(false);
     }
@@ -765,12 +772,12 @@ function UserSettings({ userEmail, onEmailChange, onClose }) {
 }
 
 export default function App() {
-  const [userEmail, setUserEmail] = useState(() => localStorage.getItem("email"));
+  const [userEmail, setUserEmail] = useState<string | null>(() => localStorage.getItem("email"));
   const [showAuth, setShowAuth] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
-  const [today, setToday] = useState(undefined);
-  const [posts, setPosts] = useState([]);
-  const [oneYearAgo, setOneYearAgo] = useState(null);
+  const [today, setToday] = useState<Post | null | undefined>(undefined);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [oneYearAgo, setOneYearAgo] = useState<Post | null>(null);
   const [streak, setStreak] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -781,6 +788,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // 未ログイン時はローディングを解除して終了（データ取得のための意図的な同期setState）
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!userEmail) { setLoading(false); return; }
     Promise.allSettled([fetchToday(), fetchPosts(), fetchOneYearAgo(), fetchStreak()])
       .then(([todayResult, postsResult, oyaResult, streakResult]) => {
@@ -804,7 +813,7 @@ export default function App() {
     setLoading(true);
   }
 
-  async function handleCreate(content, mood) {
+  async function handleCreate(content: string, mood: number | null): Promise<Post> {
     const post = await createPost(content, mood);
     setToday(post);
     setPosts((prev) => [post, ...prev]);

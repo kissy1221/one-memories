@@ -94,10 +94,12 @@ one-memory/
 │   │   ├── initializers/cors.rb
 │   │   └── routes.rb
 │   └── db/migrate/
-└── frontend/                         # React + Vite + Tailwind
+└── frontend/                         # React + Vite + Tailwind + TypeScript
     ├── Dockerfile
+    ├── tsconfig.json
     └── src/
-        ├── App.jsx
-        ├── api.js
+        ├── App.tsx
+        ├── api.ts
+        ├── types.ts
         └── index.css
 ```

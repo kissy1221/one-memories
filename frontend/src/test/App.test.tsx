@@ -1,14 +1,17 @@
-import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../App";
-import * as api from "../api";
+import * as apiModule from "../api";
 
 vi.mock("../api");
 
-global.URL.createObjectURL = vi.fn(() => "blob:mock");
-global.URL.revokeObjectURL = vi.fn();
+// vi.mocked は型付けのためのラッパー（実行時は同一オブジェクト）。
+// これにより api.fetchToday.mockResolvedValue(...) 等が型安全に呼べる。
+const api = vi.mocked(apiModule);
+
+globalThis.URL.createObjectURL = vi.fn(() => "blob:mock");
+globalThis.URL.revokeObjectURL = vi.fn();
 
 const TODAY_POST = {
   id: 1,
