@@ -114,7 +114,8 @@ Noto Sans JP は廃止し、`tailwind.config.js` の fontFamily を
   `frontend/src/test/App.test.jsx`（文言変更への追随）
 - コピー変更: 投稿ボタン「つぶやく」→「書きとめる」、LPのCTA「無料ではじめる」→「ノートをひらく」。
   その他のラベルは既存を維持してテスト変更を最小にする
-- アクセシビリティ: 気分ピッカー・トグルの aria-label 維持、`focus-visible` リングを ink 色で明示、
+- アクセシビリティ: 気分ピッカー・トグルの aria-label 維持、`focus-visible` リングを ink 色で明示
+  （暗背景〔机・表紙〕上のボタンは paper 色に上書きして視認性を確保）、
   装飾要素（罫線・テープ・表紙）は `aria-hidden`。アニメーションは transition のみで
   `prefers-reduced-motion` の影響を受ける演出は追加しない
 - レスポンシブ: 欄外幅 78px→56px、表紙ヒーローは縦積み、紙面の左右パディング縮小
