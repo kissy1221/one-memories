@@ -1,6 +1,17 @@
+import type {
+  AuthResponse,
+  Post,
+  Reminder,
+  ReminderResult,
+  StreakResponse,
+  UpdateReminderParams,
+  UpdateUserParams,
+  User,
+} from "./types";
+
 const BASE = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-function authHeaders() {
+function authHeaders(): Record<string, string> {
   const token = localStorage.getItem("token");
   return {
     "Content-Type": "application/json",
@@ -8,7 +19,7 @@ function authHeaders() {
   };
 }
 
-function handleResponse(res) {
+function handleResponse(res: Response): Response {
   if (res.status === 401) {
     localStorage.removeItem("token");
     localStorage.removeItem("email");
@@ -17,7 +28,7 @@ function handleResponse(res) {
   return res;
 }
 
-export async function signup(email, password) {
+export async function signup(email: string, password: string): Promise<AuthResponse> {
   const res = await fetch(`${BASE}/api/v1/auth/signup`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -28,7 +39,7 @@ export async function signup(email, password) {
   return data;
 }
 
-export async function login(email, password) {
+export async function login(email: string, password: string): Promise<AuthResponse> {
   const res = await fetch(`${BASE}/api/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -39,37 +50,37 @@ export async function login(email, password) {
   return data;
 }
 
-export async function fetchToday() {
+export async function fetchToday(): Promise<Post | null> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/posts/today`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
-export async function fetchPosts() {
+export async function fetchPosts(): Promise<Post[]> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/posts`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
-export async function fetchOneYearAgo() {
+export async function fetchOneYearAgo(): Promise<Post | null> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/posts/one_year_ago`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
-export async function fetchStreak() {
+export async function fetchStreak(): Promise<StreakResponse> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/posts/streak`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
-export async function fetchReminder() {
+export async function fetchReminder(): Promise<Reminder | null> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
-export async function registerReminder(notifyHour) {
+export async function registerReminder(notifyHour: number): Promise<ReminderResult> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, {
     method: "POST",
     headers: authHeaders(),
@@ -80,7 +91,7 @@ export async function registerReminder(notifyHour) {
   return data;
 }
 
-export async function updateReminder(params) {
+export async function updateReminder(params: UpdateReminderParams): Promise<Reminder> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/reminders`, {
     method: "PATCH",
     headers: authHeaders(),
@@ -91,19 +102,19 @@ export async function updateReminder(params) {
   return data;
 }
 
-export async function exportPosts(type) {
+export async function exportPosts(type: string): Promise<Blob> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/export?type=${type}`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("エクスポートに失敗しました");
   return res.blob();
 }
 
-export async function fetchCurrentUser() {
+export async function fetchCurrentUser(): Promise<User> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/users/me`, { headers: authHeaders() }));
   if (!res.ok) throw new Error("fetch failed");
   return res.json();
 }
 
-export async function updateUser(params) {
+export async function updateUser(params: UpdateUserParams): Promise<AuthResponse> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/users/me`, {
     method: "PATCH",
     headers: authHeaders(),
@@ -114,7 +125,7 @@ export async function updateUser(params) {
   return data;
 }
 
-export async function createPost(content, mood = null) {
+export async function createPost(content: string, mood: number | null = null): Promise<Post> {
   const res = handleResponse(await fetch(`${BASE}/api/v1/posts`, {
     method: "POST",
     headers: authHeaders(),
