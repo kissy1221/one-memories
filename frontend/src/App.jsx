@@ -30,6 +30,14 @@ function PaperSheet({ children }) {
   );
 }
 
+function NotebookPage({ children }) {
+  return (
+    <div className="min-h-screen bg-desk py-6 sm:py-10 px-3 sm:px-6">
+      <PaperSheet>{children}</PaperSheet>
+    </div>
+  );
+}
+
 function NotebookCover({ onStart }) {
   return (
     <div className="max-w-[360px] mx-auto">
@@ -227,14 +235,16 @@ function AuthForm({ onAuth, onBack }) {
 
 function MoodPicker({ value, onChange }) {
   return (
-    <div className="flex gap-2 mb-4">
+    <div className="flex gap-1">
       {MOODS.map((m) => (
         <button
           key={m.value}
           type="button"
+          aria-label={`きぶん${m.value}`}
+          aria-pressed={value === m.value}
           onClick={() => onChange(value === m.value ? null : m.value)}
-          className={`text-2xl rounded-full w-10 h-10 flex items-center justify-center transition-all
-            ${value === m.value ? "bg-stone-100 scale-110" : "opacity-40 hover:opacity-70"}`}
+          className={`text-lg w-7 h-7 flex items-center justify-center rounded-full transition-all
+            ${value === m.value ? "bg-white/70 scale-110" : "opacity-40 hover:opacity-70"}`}
         >
           {m.emoji}
         </button>
@@ -245,14 +255,13 @@ function MoodPicker({ value, onChange }) {
 
 function TodayCard({ post }) {
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
-      <p className="text-stone-500 text-sm mb-4 font-light tracking-wider">TODAY</p>
-      {post.mood_emoji && (
-        <span className="text-2xl mb-3 block">{post.mood_emoji}</span>
-      )}
-      <p className="text-stone-800 text-lg leading-relaxed whitespace-pre-wrap font-light">{post.content}</p>
-      <p className="mt-6 text-stone-400 text-xs">{formatDate(post.posted_on)}</p>
-    </div>
+    <section className="bg-ruled pl-[72px] sm:pl-[94px] pr-5">
+      <p className="text-[11px] text-pencil-dark leading-[28px]">
+        {formatDate(post.posted_on)}
+        {post.mood_emoji && <>　きぶん <span className="text-sm">{post.mood_emoji}</span></>}
+      </p>
+      <p className="font-hand text-[15px] text-ink leading-[28px] whitespace-pre-wrap pb-[28px]">{post.content}</p>
+    </section>
   );
 }
 
@@ -278,28 +287,31 @@ function PostForm({ onSubmit }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8">
-      <p className="text-stone-500 text-sm mb-4 font-light tracking-wider">TODAY</p>
-      <MoodPicker value={mood} onChange={setMood} />
+    <form onSubmit={handleSubmit} className="bg-ruled pl-[72px] sm:pl-[94px] pr-5">
+      <div className="flex items-center gap-2 h-[28px]">
+        <span className="text-[11px] text-pencil-dark">
+          {new Date().toLocaleDateString("ja-JP", { month: "long", day: "numeric", weekday: "short" })}
+        </span>
+        <span className="text-[11px] text-pencil-dark ml-2">きぶん</span>
+        <MoodPicker value={mood} onChange={setMood} />
+      </div>
       <textarea
-        className="w-full min-h-[140px] text-stone-800 text-base leading-relaxed font-light placeholder-stone-300 border-none outline-none bg-transparent"
+        className="block w-full min-h-[112px] bg-transparent font-hand text-[15px] text-ink leading-[28px] placeholder:text-pencil placeholder:font-sans border-none outline-none"
         placeholder="今日のひとこと..."
         value={content}
         onChange={(e) => setContent(e.target.value.slice(0, MAX_CHARS))}
         disabled={submitting}
         autoFocus
       />
-      <div className="flex items-center justify-between mt-4 pt-4 border-t border-stone-100">
-        <span className={`text-xs ${remaining < 50 ? "text-amber-500" : "text-stone-300"}`}>
-          {remaining}
-        </span>
-        {error && <p className="text-red-400 text-xs">{error}</p>}
+      <div className="flex items-center justify-end gap-4 h-[56px]">
+        {error && <p className="text-ink-red text-xs">{error}</p>}
+        <span className={`text-xs ${remaining < 50 ? "text-ink-red" : "text-pencil"}`}>{remaining}</span>
         <button
           type="submit"
           disabled={!content.trim() || submitting}
-          className="px-6 py-2 bg-stone-800 text-white text-sm rounded-full font-light tracking-wide disabled:opacity-30 hover:bg-stone-700 transition-colors"
+          className="bg-ink text-paper text-sm rounded px-6 py-2 hover:bg-cover-dark transition-colors disabled:opacity-30"
         >
-          {submitting ? "投稿中..." : "つぶやく"}
+          {submitting ? "書いています..." : "書きとめる"}
         </button>
       </div>
     </form>
@@ -818,71 +830,54 @@ export default function App() {
   const history = posts.filter((p) => !today || p.id !== today.id);
 
   return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="max-w-xl mx-auto px-4 py-12">
-        <header className="mb-10 text-center">
-          <h1 className="text-2xl font-light tracking-[0.2em] text-stone-700">one memory</h1>
-          <p className="mt-2 text-stone-400 text-xs tracking-widest font-light">
-            {new Date().toLocaleDateString("ja-JP", { year: "numeric", month: "long", day: "numeric" })}
-          </p>
-          {streak > 0 && (
-            <p className="mt-3 text-amber-500 text-sm font-light tracking-wide">
-              🔥 {streak}日連続
-            </p>
-          )}
-          <div className="mt-3 flex items-center justify-center gap-4">
-            <button
-              onClick={() => setShowSettings(true)}
-              className="text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
-            >
-              設定
-            </button>
-            <button
-              onClick={handleLogout}
-              className="text-stone-300 text-xs font-light hover:text-stone-500 transition-colors"
-            >
-              ログアウト
-            </button>
-          </div>
-        </header>
+    <NotebookPage>
+      <header className="flex items-baseline justify-between pl-[72px] sm:pl-[94px] pr-5 pt-6 pb-3">
+        <h1 className="font-display font-bold text-base sm:text-lg text-ink tracking-[0.2em]">one memory</h1>
+        <div className="flex items-baseline gap-3 text-[11px] text-pencil-dark">
+          {streak > 0 && <span>🔥 {streak}日連続</span>}
+          <button onClick={() => setShowSettings(true)} className="hover:text-ink transition-colors">設定</button>
+          <button onClick={handleLogout} className="hover:text-ink transition-colors">ログアウト</button>
+        </div>
+      </header>
 
-        {loading ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-8 animate-pulse">
-            <div className="h-3 w-16 bg-stone-100 rounded mb-4" />
-            <div className="h-4 bg-stone-100 rounded w-3/4 mb-2" />
-            <div className="h-4 bg-stone-100 rounded w-1/2" />
-          </div>
-        ) : today ? (
-          <TodayCard post={today} />
-        ) : (
-          <PostForm onSubmit={handleCreate} />
-        )}
+      {loading ? (
+        <div className="pl-[72px] sm:pl-[94px] pr-5 pb-8 animate-pulse" aria-hidden="true">
+          <div className="h-3 w-24 bg-rule/50 rounded mb-4" />
+          <div className="h-3 w-3/4 bg-rule/50 rounded mb-3" />
+          <div className="h-3 w-1/2 bg-rule/50 rounded" />
+        </div>
+      ) : today ? (
+        <TodayCard post={today} />
+      ) : (
+        <PostForm onSubmit={handleCreate} />
+      )}
 
-        {!loading && oneYearAgo && <OneYearAgoCard post={oneYearAgo} />}
+      {!loading && oneYearAgo && <OneYearAgoCard post={oneYearAgo} />}
 
-        {history.length > 0 && (
-          <section className="mt-10">
-            <p className="text-stone-400 text-xs tracking-widest font-light mb-6 uppercase">Past</p>
-            {groupByYearMonth(history).map(([month, monthPosts]) => (
-              <div key={month} className="mb-6">
-                <p className="text-stone-300 text-xs font-light mb-2 tracking-wide">{month}</p>
-                <div className="bg-white rounded-2xl shadow-sm border border-stone-100 px-8">
-                  {monthPosts.map((post) => (
-                    <HistoryItem key={post.id} post={post} />
-                  ))}
-                </div>
+      {history.length > 0 && (
+        <section className="mt-10 px-5">
+          <p className="text-stone-400 text-xs tracking-widest font-light mb-6 uppercase">Past</p>
+          {groupByYearMonth(history).map(([month, monthPosts]) => (
+            <div key={month} className="mb-6">
+              <p className="text-stone-300 text-xs font-light mb-2 tracking-wide">{month}</p>
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-100 px-8">
+                {monthPosts.map((post) => (
+                  <HistoryItem key={post.id} post={post} />
+                ))}
               </div>
-            ))}
-          </section>
-        )}
+            </div>
+          ))}
+        </section>
+      )}
 
-        {!loading && posts.length === 0 && !today && (
-          <p className="text-center text-stone-300 text-sm mt-16 font-light">まだ記録がありません</p>
-        )}
+      {!loading && posts.length === 0 && !today && (
+        <p className="text-center text-stone-300 text-sm mt-16 font-light">まだ記録がありません</p>
+      )}
 
+      <div className="px-5 pb-8">
         {!loading && posts.length > 0 && <ExportSection />}
         <ReminderForm />
       </div>
-    </div>
+    </NotebookPage>
   );
 }

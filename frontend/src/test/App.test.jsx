@@ -210,7 +210,7 @@ describe("App", () => {
       const textarea = await screen.findByPlaceholderText("今日のひとこと...");
       await userEvent.type(textarea, "今日もいい天気だった");
 
-      const button = screen.getByRole("button", { name: "つぶやく" });
+      const button = screen.getByRole("button", { name: "書きとめる" });
       await userEvent.click(button);
 
       await waitFor(() => {
@@ -233,7 +233,7 @@ describe("App", () => {
       const textarea = await screen.findByPlaceholderText("今日のひとこと...");
       await userEvent.type(textarea, "テスト");
 
-      const button = screen.getByRole("button", { name: "つぶやく" });
+      const button = screen.getByRole("button", { name: "書きとめる" });
       await userEvent.click(button);
 
       await waitFor(() => {
