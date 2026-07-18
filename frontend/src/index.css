@@ -3,9 +3,29 @@
 @tailwind utilities;
 
 body {
-  font-family: 'Noto Sans JP', sans-serif;
+  font-family: 'Zen Kaku Gothic New', sans-serif;
 }
 
 textarea {
   resize: none;
+}
+
+@layer base {
+  :focus-visible {
+    outline: 2px solid #3B3A36;
+    outline-offset: 2px;
+  }
+}
+
+@layer utilities {
+  .bg-ruled {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      #BFCBD4 27px,
+      #BFCBD4 28px
+    );
+    background-attachment: local;
+  }
 }
